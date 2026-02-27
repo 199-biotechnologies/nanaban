@@ -15,12 +15,16 @@
   <a href="https://nodejs.org"><img src="https://img.shields.io/node/v/nanaban.svg" alt="node version"></a>
 </p>
 
+The easiest way to use [Nano Banana 2](https://ai.google.dev/gemini-api/docs/image-generation) and Nano Banana Pro from the terminal. One `npm install`, one command, and you have an image. Built so that any human or AI agent can generate images without friction — no browser, no wrapper libraries, no configuration rabbit holes.
+
+If you use [OpenClaw](https://github.com/openclaw/openclaw), paste this repo URL and let it handle the rest — nanaban's `--json` mode was built for exactly this kind of agent integration.
+
 ```bash
 npm install -g nanaban
 nanaban "a fox in snow"
 ```
 
-That's it. You have an image. Auto-named, saved to your current directory, ready to use.
+Auto-named, saved to your current directory, ready to use.
 
 ## What it looks like
 
@@ -71,13 +75,21 @@ cd nanaban && npm install && npm link
 
 ## Setup (30 seconds)
 
-Grab a free API key from [Google AI Studio](https://aistudio.google.com/apikey), then:
+You need a Google Gemini API key. It's free and takes a minute:
+
+1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
+2. Sign in with any Google account
+3. Click **Create API Key**
+4. Pick any Google Cloud project (or let it create one for you)
+5. Copy the key — it starts with `AIzaSy...`
+
+Then store it once:
 
 ```bash
 nanaban auth set AIzaSy...
 ```
 
-Done. The key persists across sessions. You can also use `GEMINI_API_KEY` or `GOOGLE_API_KEY` as environment variables if you prefer.
+That's it. The key persists across sessions. You can also set `GEMINI_API_KEY` or `GOOGLE_API_KEY` as an environment variable if you prefer.
 
 Check what's configured anytime:
 
