@@ -1,0 +1,30 @@
+{
+  "name": "nb2",
+  "version": "3.0.0",
+  "type": "module",
+  "main": "gemini-image.ts",
+  "bin": {
+    "nb2": "./bin/nb2.mjs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["image-generation", "gemini", "cli"],
+  "author": "Boris Djordjevic",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/199-biotechnologies/nb2.git"
+  },
+  "license": "ISC",
+  "description": "Nano Banana image generation CLI (NB2 + Pro) with dual-mode output",
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "@types/node": "^25.0.3",
+    "commander": "^14.0.0",
+    "google-auth-library": "^9.0.0",
+    "nanospinner": "^1.2.0",
+    "picocolors": "^1.1.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
