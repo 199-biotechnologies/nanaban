@@ -8,7 +8,7 @@ const VERSION = '3.0.0';
 const program = new Command();
 
 program
-  .name('nb2')
+  .name('nanaban')
   .description('Nano Banana image generation CLI')
   .version(VERSION, '-v, --version')
   .enablePositionalOptions()
@@ -53,7 +53,7 @@ const authCmd = new Command('auth')
 
 authCmd
   .command('set <key>')
-  .description('store API key in ~/.nb2/config.json')
+  .description('store API key in ~/.nanaban/config.json')
   .option('--json', 'JSON output', false)
   .action(async (key: string, opts) => {
     await runAuthSet(key, opts.json);

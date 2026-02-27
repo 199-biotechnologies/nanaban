@@ -18,11 +18,11 @@ export interface ClientResult {
 
 async function getOAuthClient(): Promise<OAuth2Client | null> {
   // OAuth client credentials can come from:
-  // 1. NB2_OAUTH_CLIENT_ID / NB2_OAUTH_CLIENT_SECRET env vars
-  // 2. ~/.nb2/config.json oauthClientId / oauthClientSecret fields
+  // 1. NANABAN_OAUTH_CLIENT_ID / NANABAN_OAUTH_CLIENT_SECRET env vars
+  // 2. ~/.nanaban/config.json oauthClientId / oauthClientSecret fields
   const config = await readConfig();
-  const clientId = process.env.NB2_OAUTH_CLIENT_ID || config.oauthClientId;
-  const clientSecret = process.env.NB2_OAUTH_CLIENT_SECRET || config.oauthClientSecret;
+  const clientId = process.env.NANABAN_OAUTH_CLIENT_ID || config.oauthClientId;
+  const clientSecret = process.env.NANABAN_OAUTH_CLIENT_SECRET || config.oauthClientSecret;
 
   if (!clientId || !clientSecret) return null;
 
@@ -53,12 +53,12 @@ export async function createClient(): Promise<ClientResult> {
     };
   }
 
-  // 2. Stored key from ~/.nb2/config.json
+  // 2. Stored key from ~/.nanaban/config.json
   const storedKey = await getStoredKey();
   if (storedKey) {
     return {
       client: new GoogleGenAI({ apiKey: storedKey }),
-      auth: { method: 'config', detail: '~/.nb2/config.json' },
+      auth: { method: 'config', detail: '~/.nanaban/config.json' },
     };
   }
 
@@ -73,7 +73,7 @@ export async function createClient(): Promise<ClientResult> {
 
   throw new NB2Error(
     'AUTH_MISSING',
-    'No authentication found. Run `nb2 auth set <key>`, set GEMINI_API_KEY, or login via Gemini CLI.'
+    'No authentication found. Run `nanaban auth set <key>`, set GEMINI_API_KEY, or login via Gemini CLI.'
   );
 }
 
@@ -90,7 +90,7 @@ export async function checkAuth(): Promise<{ method: string; detail: string; val
   // Check config
   const storedKey = await getStoredKey();
   if (storedKey) {
-    results.push({ method: 'config', detail: `~/.nb2/config.json (${storedKey.slice(0, 8)}...)`, valid: true });
+    results.push({ method: 'config', detail: `~/.nanaban/config.json (${storedKey.slice(0, 8)}...)`, valid: true });
   }
 
   // Check OAuth
@@ -102,7 +102,7 @@ export async function checkAuth(): Promise<{ method: string; detail: string; val
     const exists = await fs.access(oauthPath).then(() => true).catch(() => false);
     if (exists) {
       const config = await readConfig();
-      const hasClientCreds = !!(process.env.NB2_OAUTH_CLIENT_ID || config.oauthClientId);
+      const hasClientCreds = !!(process.env.NANABAN_OAUTH_CLIENT_ID || config.oauthClientId);
       const detail = hasClientCreds
         ? '~/.gemini/oauth_creds.json (expired/invalid)'
         : '~/.gemini/oauth_creds.json (no OAuth client credentials configured)';

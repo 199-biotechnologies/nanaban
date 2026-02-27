@@ -1,9 +1,9 @@
-# nb2
+# nanaban
 
 Image generation from the terminal. Two words and you have a picture.
 
 ```bash
-nb2 "a fox in snow"
+nanaban "a fox in snow"
 ```
 
 That's it. Auto-names the file, saves to your current directory, shows you the result.
@@ -11,10 +11,15 @@ That's it. Auto-names the file, saves to your current directory, shows you the r
 ## Install
 
 ```bash
+npm install -g nanaban
+```
+
+Or from source:
+
+```bash
 git clone https://github.com/199-biotechnologies/nb2.git
 cd nb2
-npm install
-npm link
+npm install && npm link
 ```
 
 ## Auth
@@ -22,26 +27,26 @@ npm link
 Three methods, checked in order:
 
 1. **Environment variable** — `GEMINI_API_KEY` or `GOOGLE_API_KEY`
-2. **Stored key** — `nb2 auth set <your-key>` (saves to `~/.nb2/config.json`)
+2. **Stored key** — `nanaban auth set <your-key>` (saves to `~/.nanaban/config.json`)
 3. **Gemini CLI OAuth** — if you have `gemini` CLI installed and logged in
 
 ```bash
 # Easiest: store once, use forever
-nb2 auth set AIzaSy...
+nanaban auth set AIzaSy...
 
 # Check what's configured
-nb2 auth
+nanaban auth
 ```
 
 ## Usage
 
 ```bash
-nb2 "prompt"                          # auto-names, saves to CWD
-nb2 "prompt" -o sunset.png            # specific output file
-nb2 "prompt" --ar 16:9 --size 2k     # wide, high-res
-nb2 "prompt" --pro                    # Nano Banana Pro model
-nb2 "prompt" --neg "blurry"           # negative prompt
-nb2 edit photo.png "add sunglasses"   # edit existing image
+nanaban "prompt"                          # auto-names, saves to CWD
+nanaban "prompt" -o sunset.png            # specific output file
+nanaban "prompt" --ar 16:9 --size 2k     # wide, high-res
+nanaban "prompt" --pro                    # Nano Banana Pro model
+nanaban "prompt" --neg "blurry"           # negative prompt
+nanaban edit photo.png "add sunglasses"   # edit existing image
 ```
 
 ### Flags
@@ -80,7 +85,7 @@ Collisions auto-increment: `fox_snowy_forest.png`, `fox_snowy_forest_2.png`, etc
 For scripts and LLM agents — structured output, no spinners, no colors:
 
 ```bash
-nb2 "a red circle" --json
+nanaban "a red circle" --json
 ```
 
 ```json
@@ -115,8 +120,8 @@ Exit codes: `0` success, `1` runtime error, `2` usage error.
 stdout is always just the file path (metadata goes to stderr), so this works:
 
 ```bash
-nb2 "a cat" | xargs open
-nb2 "a cat" 2>/dev/null | pbcopy
+nanaban "a cat" | xargs open
+nanaban "a cat" 2>/dev/null | pbcopy
 ```
 
 ## Dependencies

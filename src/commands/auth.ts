@@ -7,7 +7,7 @@ export async function runAuthStatus(json: boolean): Promise<void> {
   const methods = await checkAuth();
 
   if (methods.length === 0) {
-    out.authStatus('none', 'No authentication configured. Run `nb2 auth set <key>` or set GEMINI_API_KEY.', false);
+    out.authStatus('none', 'No authentication configured. Run `nanaban auth set <key>` or set GEMINI_API_KEY.', false);
     process.exit(1);
   }
 
@@ -23,10 +23,10 @@ export async function runAuthSet(key: string, json: boolean): Promise<void> {
   const out = createOutput(json, false);
 
   if (!key) {
-    out.authStatus('config', 'No key provided. Usage: nb2 auth set <key>', false);
+    out.authStatus('config', 'No key provided. Usage: nanaban auth set <key>', false);
     process.exit(2);
   }
 
   await setStoredKey(key);
-  out.authStatus('config', 'API key saved to ~/.nb2/config.json', true);
+  out.authStatus('config', 'API key saved to ~/.nanaban/config.json', true);
 }

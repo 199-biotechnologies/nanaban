@@ -1,22 +1,43 @@
 {
-  "name": "nb2",
+  "name": "nanaban",
   "version": "3.0.0",
   "type": "module",
+  "description": "Image generation from the terminal. Two words and you have a picture.",
   "main": "gemini-image.ts",
   "bin": {
-    "nb2": "./bin/nb2.mjs"
+    "nanaban": "./bin/nanaban.mjs"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "gemini-image.ts",
+    "generate-image.ts",
+    "README.md"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["image-generation", "gemini", "cli"],
+  "keywords": [
+    "image-generation",
+    "gemini",
+    "cli",
+    "ai",
+    "nano-banana",
+    "text-to-image"
+  ],
   "author": "Boris Djordjevic",
   "repository": {
     "type": "git",
     "url": "https://github.com/199-biotechnologies/nb2.git"
   },
+  "homepage": "https://github.com/199-biotechnologies/nb2#readme",
+  "bugs": {
+    "url": "https://github.com/199-biotechnologies/nb2/issues"
+  },
   "license": "ISC",
-  "description": "Nano Banana image generation CLI (NB2 + Pro) with dual-mode output",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@google/genai": "^1.0.0",
     "@types/node": "^25.0.3",

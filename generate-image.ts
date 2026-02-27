@@ -1,10 +1,10 @@
 #!/usr/bin/env npx tsx
 
 /**
- * DEPRECATED: Use `nb2` CLI instead.
- *   nb2 "prompt"                  — generate image
- *   nb2 edit photo.png "prompt"   — edit image
- *   nb2 --help                    — see all options
+ * DEPRECATED: Use `nanaban` CLI instead.
+ *   nanaban "prompt"                  — generate image
+ *   nanaban edit photo.png "prompt"   — edit image
+ *   nanaban --help                    — see all options
  *
  * This file is kept for backward compatibility with existing skill invocations.
  *
@@ -36,7 +36,7 @@ async function main() {
   if (values.help || !values.prompt || !values.output) {
     console.log(`
 Nano Banana Image Generator (NB2 + Pro)
-NOTE: Consider using the new 'nb2' CLI instead.
+NOTE: Consider using the new 'nanaban' CLI instead.
 
 Usage: npx tsx generate-image.ts --prompt "..." --output "output.png"
 

@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { homedir } from 'os';
 
-const CONFIG_DIR = path.join(homedir(), '.nb2');
+const CONFIG_DIR = path.join(homedir(), '.nanaban');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
 
 export interface NB2Config {

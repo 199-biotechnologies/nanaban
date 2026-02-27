@@ -20,7 +20,7 @@ export async function runEdit(imagePath: string, prompt: string, opts: EditComma
   const out: Output = createOutput(opts.json, opts.quiet);
 
   if (!imagePath || !prompt) {
-    const err = new NB2Error('PROMPT_MISSING', 'Usage: nb2 edit <image> "edit instructions"');
+    const err = new NB2Error('PROMPT_MISSING', 'Usage: nanaban edit <image> "edit instructions"');
     out.error(err);
     process.exit(err.exitCode);
   }

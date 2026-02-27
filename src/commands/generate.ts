@@ -22,7 +22,7 @@ export async function runGenerate(prompt: string, opts: GenerateCommandOpts): Pr
   const out: Output = createOutput(opts.json, opts.quiet);
 
   if (!prompt) {
-    const err = new NB2Error('PROMPT_MISSING', 'No prompt provided. Usage: nb2 "your prompt"');
+    const err = new NB2Error('PROMPT_MISSING', 'No prompt provided. Usage: nanaban "your prompt"');
     out.error(err);
     process.exit(err.exitCode);
   }

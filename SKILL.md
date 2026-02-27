@@ -3,23 +3,23 @@ name: nano-banana-pro
 description: Generate images using Nano Banana 2 (fast, cheap) or Nano Banana Pro (higher quality). Use when user asks to create, generate, or make an image, picture, graphic, hero image, illustration, or visual.
 ---
 
-# Image Generation — `nb2` CLI
+# Image Generation — `nanaban` CLI
 
 ```bash
-nb2 "PROMPT"
-nb2 "PROMPT" -o output.png
-nb2 "PROMPT" --ar 16:9 --size 2k --pro
-nb2 edit photo.png "add sunglasses"
+nanaban "PROMPT"
+nanaban "PROMPT" -o output.png
+nanaban "PROMPT" --ar 16:9 --size 2k --pro
+nanaban edit photo.png "add sunglasses"
 ```
 
 ## Auth
 
 Auth is automatic (in priority order):
 1. `GEMINI_API_KEY` / `GOOGLE_API_KEY` env var
-2. `~/.nb2/config.json` — stored via `nb2 auth set <key>`
+2. `~/.nanaban/config.json` — stored via `nanaban auth set <key>`
 3. Gemini CLI OAuth (`~/.gemini/oauth_creds.json`)
 
-Check status: `nb2 auth`
+Check status: `nanaban auth`
 
 ## Defaults
 
@@ -61,7 +61,7 @@ Each word earns its place. Structure: **Subject + Treatment + Constraints**
 ## JSON Mode (for agents)
 
 ```bash
-nb2 "a red circle" --json
+nanaban "a red circle" --json
 ```
 
 Returns:
@@ -75,3 +75,5 @@ Old invocation still works:
 ```bash
 npx tsx ~/.claude/skills/nano-banana-pro/generate-image.ts -p "PROMPT" -o output.png
 ```
+
+Install globally: `npm install -g nanaban`
