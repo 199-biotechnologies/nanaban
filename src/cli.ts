@@ -3,7 +3,7 @@ import { runGenerate } from './commands/generate.js';
 import { runEdit } from './commands/edit.js';
 import { runAuthStatus, runAuthSet } from './commands/auth.js';
 
-const VERSION = '3.0.0';
+const VERSION = '3.0.1';
 
 const program = new Command();
 
@@ -35,8 +35,10 @@ const editCmd = new Command('edit')
   .argument('<image>', 'path to the image to edit')
   .argument('<prompt>', 'edit instructions')
   .option('-o, --output <file>', 'output file path')
-  .option('--ar <ratio>', 'aspect ratio', '1:1')
-  .option('--size <size>', 'image size', '1k')
+  .option('--ar <ratio>', 'aspect ratio: 1:1, 16:9, 9:16, 4:3, 3:4, square, wide, tall', '1:1')
+  .option('--size <size>', 'image size: 1k, 2k, 4k', '1k')
+  .option('--pro', 'use Nano Banana Pro instead of NB2', false)
+  .option('--neg <text>', 'negative prompt (what to avoid)')
   .option('--json', 'JSON output', false)
   .option('--quiet', 'suppress output', false)
   .option('--open', 'open after generation', false)

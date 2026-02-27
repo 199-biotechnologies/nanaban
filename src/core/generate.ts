@@ -18,6 +18,25 @@ export const ASPECT_ALIASES: Record<string, AspectRatio> = {
   tall: '9:16',
 };
 
+const VALID_RATIOS = new Set<string>(['1:1', '16:9', '9:16', '4:3', '3:4']);
+const VALID_SIZES = new Set<string>(['1K', '2K', '4K']);
+
+export function parseAspectRatio(input: string): AspectRatio {
+  const resolved = ASPECT_ALIASES[input] || input;
+  if (!VALID_RATIOS.has(resolved)) {
+    throw new NB2Error('GENERATION_FAILED', `Invalid aspect ratio "${input}". Use: 1:1, 16:9, 9:16, 4:3, 3:4, square, wide, tall`);
+  }
+  return resolved as AspectRatio;
+}
+
+export function parseImageSize(input: string): ImageSize {
+  const normalized = input.toUpperCase();
+  if (!VALID_SIZES.has(normalized)) {
+    throw new NB2Error('GENERATION_FAILED', `Invalid size "${input}". Use: 1k, 2k, 4k`);
+  }
+  return normalized as ImageSize;
+}
+
 export interface GenerateOptions {
   mode: GenerationMode;
   model?: Model;

@@ -21,8 +21,8 @@ export async function readConfig(): Promise<NB2Config> {
 }
 
 export async function writeConfig(config: NB2Config): Promise<void> {
-  await fs.mkdir(CONFIG_DIR, { recursive: true });
-  await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n', 'utf-8');
+  await fs.mkdir(CONFIG_DIR, { recursive: true, mode: 0o700 });
+  await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n', { encoding: 'utf-8', mode: 0o600 });
 }
 
 export async function getStoredKey(): Promise<string | undefined> {

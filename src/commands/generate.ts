@@ -1,7 +1,7 @@
 import path from 'path';
 import { writeFile, mkdir } from 'fs/promises';
 import { createClient } from '../core/client.js';
-import { generateImage, ASPECT_ALIASES, type AspectRatio, type ImageSize, type Model } from '../core/generate.js';
+import { generateImage, parseAspectRatio, parseImageSize, type Model } from '../core/generate.js';
 import { autoName } from '../lib/naming.js';
 import { createOutput, type Output } from '../lib/output.js';
 import { normalizeError, NB2Error } from '../lib/errors.js';
@@ -27,13 +27,13 @@ export async function runGenerate(prompt: string, opts: GenerateCommandOpts): Pr
     process.exit(err.exitCode);
   }
 
-  const aspectRatio: AspectRatio = (ASPECT_ALIASES[opts.ar] || opts.ar || '1:1') as AspectRatio;
-  const imageSize: ImageSize = (opts.size?.toUpperCase().replace('K', 'K') || '1K') as ImageSize;
-  const model: Model = opts.pro ? 'pro' : 'nb2';
-
-  out.spin('Generating image...');
-
   try {
+    const aspectRatio = parseAspectRatio(opts.ar || '1:1');
+    const imageSize = parseImageSize(opts.size || '1k');
+    const model: Model = opts.pro ? 'pro' : 'nb2';
+
+    out.spin('Generating image...');
+
     const { client, auth } = await createClient();
     out.info(`Auth: ${auth.method} (${auth.detail})`);
 
@@ -66,8 +66,8 @@ export async function runGenerate(prompt: string, opts: GenerateCommandOpts): Pr
     });
 
     if (opts.open) {
-      const { exec } = await import('child_process');
-      exec(`open "${filePath}"`);
+      const { execFile } = await import('child_process');
+      execFile('open', [filePath]);
     }
   } catch (err) {
     out.stopSpin();

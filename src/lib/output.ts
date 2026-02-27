@@ -53,11 +53,14 @@ export class HumanOutput implements Output {
   }
 
   error(err: NB2Error): void {
-    this.spinner?.error({ text: pc.red(err.message) });
-    this.spinner = null;
-    if (!this.quiet) {
-      process.stderr.write(pc.dim(`     code: ${err.code}`) + '\n');
+    if (this.spinner) {
+      this.spinner.error({ text: pc.red(err.message) });
+      this.spinner = null;
+    } else {
+      process.stderr.write(pc.red(`Error: ${err.message}`) + '\n');
     }
+    // Always show error code — errors must never be silenced
+    process.stderr.write(pc.dim(`     code: ${err.code}`) + '\n');
   }
 
   info(text: string): void {

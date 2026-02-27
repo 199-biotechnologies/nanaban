@@ -1,8 +1,7 @@
-import fs from 'fs/promises';
+import { access, writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { writeFile, mkdir } from 'fs/promises';
 import { createClient } from '../core/client.js';
-import { generateImage, type AspectRatio, type ImageSize } from '../core/generate.js';
+import { generateImage, parseAspectRatio, parseImageSize, type Model } from '../core/generate.js';
 import { autoName } from '../lib/naming.js';
 import { createOutput, type Output } from '../lib/output.js';
 import { normalizeError, NB2Error } from '../lib/errors.js';
@@ -11,6 +10,8 @@ export interface EditCommandOpts {
   output?: string;
   ar: string;
   size: string;
+  pro: boolean;
+  neg?: string;
   json: boolean;
   quiet: boolean;
   open: boolean;
@@ -27,25 +28,28 @@ export async function runEdit(imagePath: string, prompt: string, opts: EditComma
 
   const resolved = path.resolve(imagePath);
   try {
-    await fs.access(resolved);
+    await access(resolved);
   } catch {
     const err = new NB2Error('IMAGE_NOT_FOUND', `Image not found: ${resolved}`);
     out.error(err);
     process.exit(err.exitCode);
   }
 
-  const aspectRatio: AspectRatio = (opts.ar || '1:1') as AspectRatio;
-  const imageSize: ImageSize = (opts.size?.toUpperCase() || '1K') as ImageSize;
-
-  out.spin('Editing image...');
-
   try {
+    const aspectRatio = parseAspectRatio(opts.ar || '1:1');
+    const imageSize = parseImageSize(opts.size || '1k');
+    const model: Model = opts.pro ? 'pro' : 'nb2';
+
+    out.spin('Editing image...');
+
     const { client, auth } = await createClient();
     out.info(`Auth: ${auth.method} (${auth.detail})`);
 
     const result = await generateImage(client, {
       mode: 'edit',
+      model,
       prompt,
+      negativePrompt: opts.neg,
       aspectRatio,
       imageSize,
       referenceImages: [{ source: 'file', path: resolved }],
@@ -69,8 +73,8 @@ export async function runEdit(imagePath: string, prompt: string, opts: EditComma
     });
 
     if (opts.open) {
-      const { exec } = await import('child_process');
-      exec(`open "${filePath}"`);
+      const { execFile } = await import('child_process');
+      execFile('open', [filePath]);
     }
   } catch (err) {
     out.stopSpin();

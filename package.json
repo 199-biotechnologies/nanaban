@@ -1,9 +1,8 @@
 {
   "name": "nanaban",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "type": "module",
   "description": "Image generation from the terminal. Two words and you have a picture.",
-  "main": "gemini-image.ts",
   "bin": {
     "nanaban": "./bin/nanaban.mjs"
   },

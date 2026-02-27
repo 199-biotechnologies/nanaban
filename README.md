@@ -28,7 +28,7 @@ Three methods, checked in order:
 
 1. **Environment variable** — `GEMINI_API_KEY` or `GOOGLE_API_KEY`
 2. **Stored key** — `nanaban auth set <your-key>` (saves to `~/.nanaban/config.json`)
-3. **Gemini CLI OAuth** — if you have `gemini` CLI installed and logged in
+3. **Gemini CLI OAuth** — requires `gemini` CLI login *and* OAuth client credentials via `NANABAN_OAUTH_CLIENT_ID`/`NANABAN_OAUTH_CLIENT_SECRET` env vars or `~/.nanaban/config.json`
 
 ```bash
 # Easiest: store once, use forever
@@ -126,11 +126,13 @@ nanaban "a cat" 2>/dev/null | pbcopy
 
 ## Dependencies
 
-Minimal. Three runtime deps beyond the Google SDK:
+Minimal footprint:
 
+- `@google/genai` + `google-auth-library` — Gemini API
 - `commander` — CLI parsing (~90KB)
 - `nanospinner` — terminal spinner (~3KB)
 - `picocolors` — terminal colors (~3KB)
+- `tsx` + `typescript` — TypeScript runtime (ships TS source, no build step)
 
 ## License
 

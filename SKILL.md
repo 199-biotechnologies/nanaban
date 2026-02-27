@@ -17,7 +17,7 @@ nanaban edit photo.png "add sunglasses"
 Auth is automatic (in priority order):
 1. `GEMINI_API_KEY` / `GOOGLE_API_KEY` env var
 2. `~/.nanaban/config.json` — stored via `nanaban auth set <key>`
-3. Gemini CLI OAuth (`~/.gemini/oauth_creds.json`)
+3. Gemini CLI OAuth (`~/.gemini/oauth_creds.json` + OAuth client credentials in env or config)
 
 Check status: `nanaban auth`
 
