@@ -2,6 +2,7 @@ node_modules/
 .env
 *.png
 !nanaban_logo.png
+!examples/*.png
 *.jpg
 *.jpeg
 *.webp

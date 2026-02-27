@@ -4,13 +4,55 @@
   <img src="nanaban_logo.png" alt="nanaban" width="600">
 </p>
 
-Image generation from the terminal. Two words, one picture.
+<p align="center">
+  <strong>Image generation from the terminal. Two words, one picture.</strong>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/nanaban"><img src="https://img.shields.io/npm/v/nanaban.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/nanaban"><img src="https://img.shields.io/npm/dm/nanaban.svg" alt="npm downloads"></a>
+  <a href="https://github.com/199-biotechnologies/nanaban/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/nanaban.svg" alt="license"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/node/v/nanaban.svg" alt="node version"></a>
+</p>
 
 ```bash
+npm install -g nanaban
 nanaban "a fox in snow"
 ```
 
-Auto-names the file, saves it to your current directory, opens it on request. Done.
+That's it. You have an image. Auto-named, saved to your current directory, ready to use.
+
+## What it looks like
+
+<table>
+<tr>
+<td align="center">
+<img src="examples/cyberpunk_tokyo.png" width="350"><br>
+<code>nanaban "cyberpunk tokyo street neon rain" --ar wide</code>
+</td>
+<td align="center">
+<img src="examples/fox_ink.png" width="250"><br>
+<code>nanaban "minimalist single line fox"</code>
+</td>
+<td align="center">
+<img src="examples/product_mug.png" width="250"><br>
+<code>nanaban "product photo white ceramic mug"</code>
+</td>
+</tr>
+</table>
+
+Every image on this page was generated with nanaban. ~3 seconds each, $0.04 per image, straight from the terminal.
+
+## Why nanaban
+
+Most image generation tools make you open a browser, wait in a queue, click through UI, download manually. nanaban cuts all of that:
+
+- **One command** — type your prompt, get a file. No browser, no signup flow, no queue.
+- **Auto-names files** — `"a fox in a snowy forest at dawn"` becomes `fox_snowy_forest_dawn.png`. No more `image_032_final_v2.png`.
+- **Built for scripts** — stdout is always the file path. `nanaban "a cat" | xargs open` just works.
+- **Built for LLM agents** — `--json` gives you structured output. Plug it into any AI pipeline.
+- **Cheap** — $0.04/image on the fast model. $0.09 on Pro. No subscription.
+- **Tiny** — 6 dependencies. Ships TypeScript source directly, no build step.
 
 ## Install
 
@@ -18,31 +60,26 @@ Auto-names the file, saves it to your current directory, opens it on request. Do
 npm install -g nanaban
 ```
 
-Or clone and link if you'd rather work from source:
+Needs Node 18+. That's the only requirement.
+
+Want to work from source instead?
 
 ```bash
 git clone https://github.com/199-biotechnologies/nanaban.git
-cd nanaban
-npm install && npm link
+cd nanaban && npm install && npm link
 ```
 
-Needs Node 18+.
+## Setup (30 seconds)
 
-## Auth
-
-You need a Google Gemini API key. Three ways to provide one, checked in this order:
-
-1. **Environment variable** — `GEMINI_API_KEY` or `GOOGLE_API_KEY`
-2. **Stored key** — `nanaban auth set <your-key>` saves it to `~/.nanaban/config.json`
-3. **Gemini CLI OAuth** — if you've logged in with the `gemini` CLI *and* have OAuth client credentials set via `NANABAN_OAUTH_CLIENT_ID`/`NANABAN_OAUTH_CLIENT_SECRET` env vars or in `~/.nanaban/config.json`
-
-Easiest way: grab a key from [Google AI Studio](https://aistudio.google.com/apikey), store it once.
+Grab a free API key from [Google AI Studio](https://aistudio.google.com/apikey), then:
 
 ```bash
 nanaban auth set AIzaSy...
 ```
 
-That's it. The key sticks between sessions. Check what's configured anytime:
+Done. The key persists across sessions. You can also use `GEMINI_API_KEY` or `GOOGLE_API_KEY` as environment variables if you prefer.
+
+Check what's configured anytime:
 
 ```bash
 nanaban auth
@@ -52,64 +89,64 @@ nanaban auth
 
 ```bash
 nanaban "prompt"                          # auto-names, saves to CWD
-nanaban "prompt" -o sunset.png            # specific output file
-nanaban "prompt" --ar 16:9 --size 2k     # wide, high-res
+nanaban "prompt" -o sunset.png            # pick your own filename
+nanaban "prompt" --ar wide --size 2k      # 16:9, high resolution
 nanaban "prompt" --pro                    # higher quality model
-nanaban "prompt" --neg "blurry"           # negative prompt
-nanaban "prompt" -r style.png            # use a reference image
+nanaban "prompt" --neg "blurry, text"     # negative prompt
+nanaban "prompt" -r style.png            # match the style of another image
 nanaban edit photo.png "add sunglasses"   # edit an existing image
 ```
 
 ### Flags
 
-| Flag | Description | Default |
+| Flag | What it does | Default |
 |------|-------------|---------|
 | `-o, --output <file>` | Output path | auto from prompt |
-| `--ar <ratio>` | `1:1` `16:9` `9:16` `4:3` `3:4` `square` `wide` `tall` | `1:1` |
-| `--size <size>` | `1k` `2k` `4k` | `1k` |
-| `--pro` | Nano Banana Pro — better quality, roughly 2x the cost | `false` |
-| `--neg <text>` | What to avoid in the image | |
-| `-r, --ref <file>` | Reference image for style or content guidance | |
-| `--open` | Open the result in your default viewer | `false` |
-| `--json` | Structured JSON output for scripts and agents | `false` |
-| `--quiet` | Suppress non-essential output | `false` |
+| `--ar <ratio>` | Aspect ratio: `1:1` `16:9` `9:16` `4:3` `3:4` `square` `wide` `tall` | `1:1` |
+| `--size <size>` | Resolution: `1k` `2k` `4k` | `1k` |
+| `--pro` | Use Pro model — better detail, ~2x cost | off |
+| `--neg <text>` | What to keep out of the image | |
+| `-r, --ref <file>` | Reference image (style/content guidance) | |
+| `--open` | Open in your default viewer after generating | off |
+| `--json` | Structured JSON output for scripts | off |
+| `--quiet` | Suppress non-essential output | off |
 
-All flags work with both `nanaban "prompt"` and `nanaban edit`.
+Every flag works with both `nanaban "prompt"` and `nanaban edit`.
 
-### Auto-naming
+## Reference images
 
-Your prompt becomes the filename. Stop words get stripped, capped at 6 words, joined by underscores.
+Pass any image as a style or content reference with `-r`:
 
+```bash
+nanaban "portrait of a woman" -r painting_style.png
+nanaban "modern living room" -r color_palette.jpg
+nanaban "product shot" -r brand_reference.png
 ```
-"a fox in a snowy forest at dawn" → fox_snowy_forest_dawn.png
+
+The model picks up on the visual language of your reference — color palette, composition, texture, artistic style — and applies it to your prompt. Useful for keeping a consistent look across a batch of images, matching brand aesthetics, or steering the output toward a specific vibe without writing a 200-word prompt.
+
+## Editing existing images
+
+```bash
+nanaban edit photo.png "remove the background"
+nanaban edit headshot.png "make it a pencil sketch"
+nanaban edit product.png "place on a marble table" --ar wide
 ```
 
-If the file already exists, it auto-increments: `fox_snowy_forest.png`, `fox_snowy_forest_2.png`, and so on.
-
-### Aspect Ratios
-
-Exact ratios or shorthand — your call:
-
-| Shorthand | Ratio | Good for |
-|-----------|-------|----------|
-| `square` | 1:1 | Profile pics, thumbnails |
-| `wide` | 16:9 | Hero images, banners, wallpapers |
-| `tall` | 9:16 | Phone wallpapers, stories |
+Takes a source image and your edit instruction. Same flags apply — you can change aspect ratio, resolution, use Pro for finer edits.
 
 ## Models
 
-Two models. Pick based on what you need:
+| Model | Flag | Speed | Cost | Best for |
+|-------|------|-------|------|----------|
+| **NB2** (default) | — | ~3s | $0.04/img | Quick iterations, bulk generation, drafts |
+| **Pro** | `--pro` | ~8s | ~$0.09/img | Final assets, detail-heavy work, text in images |
 
-| Model | Flag | Speed | Cost | When to use |
-|-------|------|-------|------|-------------|
-| **NB2** (default) | — | ~3s | $0.045/img | Quick iterations, bulk generation |
-| **Pro** | `--pro` | ~8s | ~$0.09/img | Final assets, detail-heavy work |
+Both run on Gemini's image generation models (`gemini-3.1-flash-image-preview` and `gemini-3-pro-image-preview`).
 
-Both are Gemini image models (`gemini-3.1-flash-image-preview` and `gemini-3-pro-image-preview`).
+## For LLM agents and scripts
 
-## JSON Mode
-
-For scripts, CI pipelines, and LLM agents. No spinners, no colors, just data:
+`--json` gives you machine-readable output. No spinners, no colors, no ambiguity:
 
 ```bash
 nanaban "a red circle" --json
@@ -136,40 +173,39 @@ Errors come back in the same shape:
 }
 ```
 
-### Error Codes
-
-| Code | Meaning |
-|------|---------|
-| `AUTH_MISSING` | No API key found anywhere |
-| `AUTH_INVALID` | Key exists but was rejected |
-| `AUTH_EXPIRED` | OAuth token needs refresh |
-| `PROMPT_MISSING` | You forgot the prompt |
-| `IMAGE_NOT_FOUND` | Edit mode: source image doesn't exist |
-| `GENERATION_FAILED` | Model returned no image |
-| `RATE_LIMITED` | Too many requests, slow down |
-| `NETWORK_ERROR` | Can't reach the API |
+Error codes: `AUTH_MISSING`, `AUTH_INVALID`, `AUTH_EXPIRED`, `PROMPT_MISSING`, `IMAGE_NOT_FOUND`, `GENERATION_FAILED`, `RATE_LIMITED`, `NETWORK_ERROR`.
 
 Exit codes: `0` success, `1` runtime error, `2` usage error.
 
 ## Piping
 
-stdout is always just the file path. Metadata goes to stderr. So these work:
+stdout is always just the file path. Metadata goes to stderr. So these compose naturally:
 
 ```bash
-nanaban "a cat" | xargs open
-nanaban "a cat" 2>/dev/null | pbcopy
-cat prompts.txt | while read p; do nanaban "$p"; done
+nanaban "a cat" | xargs open                              # generate and open
+nanaban "a cat" 2>/dev/null | pbcopy                       # copy path to clipboard
+cat prompts.txt | while read p; do nanaban "$p"; done      # batch generate
 ```
+
+## Auto-naming
+
+Your prompt becomes the filename. Common words get stripped, capped at 6 words, joined with underscores:
+
+```
+"a fox in a snowy forest at dawn" → fox_snowy_forest_dawn.png
+```
+
+Collisions auto-increment: `fox_snowy_forest.png`, `fox_snowy_forest_2.png`, `fox_snowy_forest_3.png`.
 
 ## Dependencies
 
-Kept small on purpose:
+Deliberately small:
 
-- `@google/genai` + `google-auth-library` — Gemini API
+- `@google/genai` + `google-auth-library` — Gemini API access
 - `commander` — CLI parsing (~90KB)
 - `nanospinner` — terminal spinner (~3KB)
 - `picocolors` — terminal colors (~3KB)
-- `tsx` + `typescript` — ships TypeScript source directly, no build step
+- `tsx` + `typescript` — runs TypeScript source directly, no build step
 
 ## License
 
@@ -177,4 +213,4 @@ ISC
 
 ## Author
 
-Boris Djordjevic
+[Boris Djordjevic](https://github.com/199-biotechnologies)
