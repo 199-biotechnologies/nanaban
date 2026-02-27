@@ -17,8 +17,8 @@ npm install -g nanaban
 Or from source:
 
 ```bash
-git clone https://github.com/199-biotechnologies/nb2.git
-cd nb2
+git clone https://github.com/199-biotechnologies/nanaban.git
+cd nanaban
 npm install && npm link
 ```
 

@@ -27,11 +27,11 @@
   "author": "Boris Djordjevic",
   "repository": {
     "type": "git",
-    "url": "https://github.com/199-biotechnologies/nb2.git"
+    "url": "https://github.com/199-biotechnologies/nanaban.git"
   },
-  "homepage": "https://github.com/199-biotechnologies/nb2#readme",
+  "homepage": "https://github.com/199-biotechnologies/nanaban#readme",
   "bugs": {
-    "url": "https://github.com/199-biotechnologies/nb2/issues"
+    "url": "https://github.com/199-biotechnologies/nanaban/issues"
   },
   "license": "ISC",
   "engines": {
