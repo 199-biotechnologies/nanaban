@@ -4,8 +4,7 @@
   "type": "module",
   "description": "Image generation from the terminal. Two words and you have a picture.",
   "bin": {
-    "nanaban": "./bin/nanaban.mjs",
-    "nb2": "./bin/nanaban.mjs"
+    "nanaban": "./bin/nanaban.mjs"
   },
   "files": [
     "bin/",
