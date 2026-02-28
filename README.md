@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Image generation from the terminal. Two words, one picture.</strong>
+  <strong>Nano Banana 2 CLI — generate images from the terminal. $0.04, 3 seconds, one command.</strong>
 </p>
 
 <p align="center">
@@ -15,16 +15,14 @@
   <a href="https://nodejs.org"><img src="https://img.shields.io/node/v/nanaban.svg" alt="node version"></a>
 </p>
 
-The easiest way to use [Nano Banana 2](https://ai.google.dev/gemini-api/docs/image-generation) and Nano Banana Pro from the terminal. One `npm install`, one command, and you have an image. Built so that any human or AI agent can generate images without friction — no browser, no wrapper libraries, no configuration rabbit holes.
-
-If you use [OpenClaw](https://github.com/openclaw/openclaw), paste this repo URL and let it handle the rest — nanaban's `--json` mode was built for exactly this kind of agent integration.
+A CLI for [Nano Banana 2](https://ai.google.dev/gemini-api/docs/image-generation) and [Nano Banana Pro](https://ai.google.dev/gemini-api/docs/image-generation). One install, one command, one image. Works for humans typing prompts and AI agents calling `--json`.
 
 ```bash
 npm install -g nanaban
 nanaban "a fox in snow"
 ```
 
-Auto-named, saved to your current directory, ready to use.
+Auto-named, saved to your current directory, done. If you use [OpenClaw](https://github.com/openclaw/openclaw), paste this repo URL and let it handle the rest.
 
 ## What it looks like
 
