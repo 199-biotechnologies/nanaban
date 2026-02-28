@@ -3,7 +3,7 @@ import { runGenerate } from './commands/generate.js';
 import { runEdit } from './commands/edit.js';
 import { runAuthStatus, runAuthSet } from './commands/auth.js';
 
-const VERSION = '3.0.1';
+const VERSION = '3.1.0';
 
 const program = new Command();
 
@@ -14,7 +14,7 @@ program
   .enablePositionalOptions()
   .argument('[prompt]', 'image generation prompt')
   .option('-o, --output <file>', 'output file path (auto-generated from prompt if omitted)')
-  .option('--ar <ratio>', 'aspect ratio: 1:1, 16:9, 9:16, 4:3, 3:4, square, wide, tall', '1:1')
+  .option('--ar <ratio>', 'aspect ratio: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9, 1:4, 4:1, 1:8, 8:1, square, wide, tall, ultrawide, panoramic, banner', '1:1')
   .option('--size <size>', 'image size: 1k, 2k, 4k', '1k')
   .option('--pro', 'use Nano Banana Pro instead of NB2', false)
   .option('--neg <text>', 'negative prompt (what to avoid)')
@@ -35,7 +35,7 @@ const editCmd = new Command('edit')
   .argument('<image>', 'path to the image to edit')
   .argument('<prompt>', 'edit instructions')
   .option('-o, --output <file>', 'output file path')
-  .option('--ar <ratio>', 'aspect ratio: 1:1, 16:9, 9:16, 4:3, 3:4, square, wide, tall', '1:1')
+  .option('--ar <ratio>', 'aspect ratio: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9, 1:4, 4:1, 1:8, 8:1, square, wide, tall, ultrawide, panoramic, banner', '1:1')
   .option('--size <size>', 'image size: 1k, 2k, 4k', '1k')
   .option('--pro', 'use Nano Banana Pro instead of NB2', false)
   .option('--neg <text>', 'negative prompt (what to avoid)')

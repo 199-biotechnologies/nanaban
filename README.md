@@ -112,7 +112,7 @@ nanaban edit photo.png "add sunglasses"   # edit an existing image
 | Flag | What it does | Default |
 |------|-------------|---------|
 | `-o, --output <file>` | Output path | auto from prompt |
-| `--ar <ratio>` | Aspect ratio: `1:1` `16:9` `9:16` `4:3` `3:4` `square` `wide` `tall` | `1:1` |
+| `--ar <ratio>` | Aspect ratio (see table below) | `1:1` |
 | `--size <size>` | Resolution: `1k` `2k` `4k` | `1k` |
 | `--pro` | Use Pro model — better detail, ~2x cost | off |
 | `--neg <text>` | What to keep out of the image | |
@@ -122,6 +122,29 @@ nanaban edit photo.png "add sunglasses"   # edit an existing image
 | `--quiet` | Suppress non-essential output | off |
 
 Every flag works with both `nanaban "prompt"` and `nanaban edit`.
+
+### Aspect Ratios
+
+14 aspect ratios — from square to extreme panoramic:
+
+| Ratio | Shorthand | Good for |
+|-------|-----------|----------|
+| `1:1` | `square` | Profile pics, thumbnails |
+| `4:3` | | Photos, slides |
+| `3:2` | | Classic photo format |
+| `5:4` | | Print, posters |
+| `16:9` | `wide` | Hero images, banners, wallpapers |
+| `21:9` | `ultrawide` | Cinematic, ultrawide monitors |
+| `4:1` | `panoramic` | Panoramas, website headers |
+| `8:1` | `banner` | Extreme banners, ribbons |
+| `3:4` | | Portrait photos |
+| `2:3` | `portrait` | Book covers, tall posters |
+| `4:5` | | Instagram portrait |
+| `9:16` | `tall` / `story` | Phone wallpapers, stories |
+| `1:4` | | Tall strips, infographic panels |
+| `1:8` | | Extreme vertical banners |
+
+Note: `1:4`, `4:1`, `1:8`, `8:1` are only available on the NB2 (default) model. Pro supports the standard 10 ratios.
 
 ## Reference images
 

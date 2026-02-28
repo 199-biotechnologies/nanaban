@@ -3,7 +3,7 @@ import { loadReferenceImage, type ReferenceImage } from './reference.js';
 import { NB2Error } from '../lib/errors.js';
 
 export type Model = 'nb2' | 'pro';
-export type AspectRatio = '1:1' | '16:9' | '9:16' | '4:3' | '3:4';
+export type AspectRatio = '1:1' | '2:3' | '3:2' | '3:4' | '4:3' | '4:5' | '5:4' | '9:16' | '16:9' | '21:9' | '1:4' | '4:1' | '1:8' | '8:1';
 export type ImageSize = '1K' | '2K' | '4K';
 export type GenerationMode = 'generate' | 'edit';
 
@@ -16,15 +16,20 @@ export const ASPECT_ALIASES: Record<string, AspectRatio> = {
   square: '1:1',
   wide: '16:9',
   tall: '9:16',
+  ultrawide: '21:9',
+  panoramic: '4:1',
+  banner: '8:1',
+  portrait: '2:3',
+  story: '9:16',
 };
 
-const VALID_RATIOS = new Set<string>(['1:1', '16:9', '9:16', '4:3', '3:4']);
+const VALID_RATIOS = new Set<string>(['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9', '1:4', '4:1', '1:8', '8:1']);
 const VALID_SIZES = new Set<string>(['1K', '2K', '4K']);
 
 export function parseAspectRatio(input: string): AspectRatio {
   const resolved = ASPECT_ALIASES[input] || input;
   if (!VALID_RATIOS.has(resolved)) {
-    throw new NB2Error('GENERATION_FAILED', `Invalid aspect ratio "${input}". Use: 1:1, 16:9, 9:16, 4:3, 3:4, square, wide, tall`);
+    throw new NB2Error('GENERATION_FAILED', `Invalid aspect ratio "${input}". Use: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9, 1:4, 4:1, 1:8, 8:1, square, wide, tall, ultrawide, panoramic, banner, portrait, story`);
   }
   return resolved as AspectRatio;
 }
@@ -59,14 +64,11 @@ export interface GenerateResult {
 function getDimensions(aspectRatio: AspectRatio, imageSize: ImageSize): { width: number; height: number } {
   const base: Record<ImageSize, number> = { '1K': 1024, '2K': 2048, '4K': 4096 };
   const b = base[imageSize];
-  const ratios: Record<AspectRatio, { width: number; height: number }> = {
-    '1:1': { width: b, height: b },
-    '16:9': { width: b, height: Math.round(b * (9 / 16)) },
-    '9:16': { width: Math.round(b * (9 / 16)), height: b },
-    '4:3': { width: b, height: Math.round(b * (3 / 4)) },
-    '3:4': { width: Math.round(b * (3 / 4)), height: b },
-  };
-  return ratios[aspectRatio];
+  const [w, h] = aspectRatio.split(':').map(Number);
+  if (w >= h) {
+    return { width: b, height: Math.round(b * (h / w)) };
+  }
+  return { width: Math.round(b * (w / h)), height: b };
 }
 
 export async function generateImage(client: GoogleGenAI, options: GenerateOptions, basePath?: string): Promise<GenerateResult> {
