@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Nano Banana 2 CLI — generate images from the terminal. $0.04, 3 seconds, one command.</strong>
+  <strong>Nano Banana 2 CLI — generate images from the terminal. 3 seconds, one command.</strong>
 </p>
 
 <p align="center">
@@ -43,7 +43,7 @@ Auto-named, saved to your current directory, done. If you use [OpenClaw](https:/
 </tr>
 </table>
 
-Every image on this page was generated with nanaban. ~3 seconds each, $0.04 per image, straight from the terminal.
+Every image on this page was generated with nanaban. ~3 seconds each, straight from the terminal.
 
 ## Why nanaban
 
@@ -53,7 +53,6 @@ Most image generation tools make you open a browser, wait in a queue, click thro
 - **Auto-names files** — `"a fox in a snowy forest at dawn"` becomes `fox_snowy_forest_dawn.png`. No more `image_032_final_v2.png`.
 - **Built for scripts** — stdout is always the file path. `nanaban "a cat" | xargs open` just works.
 - **Built for LLM agents** — `--json` gives you structured output. Plug it into any AI pipeline.
-- **Cheap** — $0.04/image on the fast model. $0.09 on Pro. No subscription.
 - **Tiny** — 6 dependencies. Ships TypeScript source directly, no build step.
 
 ## Install
@@ -170,10 +169,10 @@ Takes a source image and your edit instruction. Same flags apply — you can cha
 
 ## Models
 
-| Model | Flag | Speed | Cost | Best for |
-|-------|------|-------|------|----------|
-| **NB2** (default) | — | ~3s | $0.04/img | Quick iterations, bulk generation, drafts |
-| **Pro** | `--pro` | ~8s | ~$0.09/img | Final assets, detail-heavy work, text in images |
+| Model | Flag | Speed | Best for |
+|-------|------|-------|----------|
+| **NB2** (default) | — | ~3s | Quick iterations, bulk generation, drafts |
+| **Pro** | `--pro` | ~8s | Final assets, detail-heavy work, text in images |
 
 Both run on Gemini's image generation models (`gemini-3.1-flash-image-preview` and `gemini-3-pro-image-preview`).
 
