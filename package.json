@@ -33,7 +33,7 @@
   "bugs": {
     "url": "https://github.com/199-biotechnologies/nanaban/issues"
   },
-  "license": "ISC",
+  "license": "MIT",
   "engines": {
     "node": ">=18"
   },

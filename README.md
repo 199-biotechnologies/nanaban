@@ -1,30 +1,38 @@
-# nanaban
+<p align="center">
+  <img src="nanaban_logo.png" alt="nanaban — image generation from the terminal" width="600">
+</p>
+
+<h1 align="center">nanaban</h1>
 
 <p align="center">
-  <img src="nanaban_logo.png" alt="nanaban" width="600">
+  Image generation from the terminal. Two words and you have a picture.
 </p>
 
 <p align="center">
-  <strong>Nano Banana 2 CLI — generate images from the terminal. 3 seconds, one command.</strong>
+  <a href="https://github.com/199-biotechnologies/nanaban/stargazers"><img src="https://img.shields.io/github/stars/199-biotechnologies/nanaban?style=for-the-badge&logo=github&label=%E2%AD%90%20Star%20this%20repo&color=yellow" alt="Star this repo"></a>
+  &nbsp;
+  <a href="https://x.com/longevityboris"><img src="https://img.shields.io/badge/Follow_%40longevityboris-000000?style=for-the-badge&logo=x&logoColor=white" alt="Follow @longevityboris on X"></a>
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/nanaban"><img src="https://img.shields.io/npm/v/nanaban.svg" alt="npm version"></a>
-  <a href="https://www.npmjs.com/package/nanaban"><img src="https://img.shields.io/npm/dm/nanaban.svg" alt="npm downloads"></a>
-  <a href="https://github.com/199-biotechnologies/nanaban/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/nanaban.svg" alt="license"></a>
-  <a href="https://nodejs.org"><img src="https://img.shields.io/node/v/nanaban.svg" alt="node version"></a>
+  <a href="https://www.npmjs.com/package/nanaban"><img src="https://img.shields.io/npm/v/nanaban?style=for-the-badge&logo=npm&logoColor=white&label=npm&color=CB3837" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/nanaban"><img src="https://img.shields.io/npm/dm/nanaban?style=for-the-badge&logo=npm&logoColor=white&color=CB3837" alt="npm downloads"></a>
+  <a href="https://github.com/199-biotechnologies/nanaban/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="MIT License"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/node/v/nanaban?style=for-the-badge&logo=node.js&logoColor=white&color=339933" alt="Node.js version"></a>
+  <a href="https://ai.google.dev/gemini-api/docs/image-generation"><img src="https://img.shields.io/badge/Powered_by-Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Powered by Gemini"></a>
 </p>
 
-A CLI for [Nano Banana 2](https://ai.google.dev/gemini-api/docs/image-generation) and [Nano Banana Pro](https://ai.google.dev/gemini-api/docs/image-generation). One install, one command, one image. Works for humans typing prompts and AI agents calling `--json`.
+<p align="center">
+  Type a prompt. Get an image. Three seconds, one command, zero browser tabs. nanaban is a CLI for AI image generation that works for humans typing prompts and LLM agents calling <code>--json</code>. It runs on Google's Gemini image generation models and saves auto-named files straight to your working directory.
+</p>
 
-```bash
-npm install -g nanaban
-nanaban "a fox in snow"
-```
+<p align="center">
+  <a href="#install">Install</a> · <a href="#quick-start">Quick Start</a> · <a href="#how-it-works">How It Works</a> · <a href="#usage">Usage</a> · <a href="#models">Models</a> · <a href="#for-llm-agents-and-scripts">Agent Mode</a> · <a href="#contributing">Contributing</a>
+</p>
 
-Auto-named, saved to your current directory, done. If you use [OpenClaw](https://github.com/openclaw/openclaw), paste this repo URL and let it handle the rest.
+---
 
-## What it looks like
+## What It Looks Like
 
 <table>
 <tr>
@@ -45,15 +53,17 @@ Auto-named, saved to your current directory, done. If you use [OpenClaw](https:/
 
 Every image on this page was generated with nanaban. ~3 seconds each, straight from the terminal.
 
-## Why nanaban
+## Why This Exists
 
-Most image generation tools make you open a browser, wait in a queue, click through UI, download manually. nanaban cuts all of that:
+Most AI image generators make you open a browser, wait in a queue, click through UI, and download manually. That workflow breaks the second you need images inside a script, a CI pipeline, or an agent loop.
 
-- **One command** — type your prompt, get a file. No browser, no signup flow, no queue.
-- **Auto-names files** — `"a fox in a snowy forest at dawn"` becomes `fox_snowy_forest_dawn.png`. No more `image_032_final_v2.png`.
-- **Built for scripts** — stdout is always the file path. `nanaban "a cat" | xargs open` just works.
-- **Built for LLM agents** — `--json` gives you structured output. Plug it into any AI pipeline.
-- **Tiny** — 6 dependencies. Ships TypeScript source directly, no build step.
+nanaban fixes that:
+
+- **One command** -- type your prompt, get a file. No browser, no signup flow, no queue.
+- **Auto-names files** -- `"a fox in a snowy forest at dawn"` becomes `fox_snowy_forest_dawn.png`. No more `image_032_final_v2.png`.
+- **Built for scripts** -- stdout is always the file path. `nanaban "a cat" | xargs open` just works.
+- **Built for LLM agents** -- `--json` gives structured output. Plug it into any AI pipeline.
+- **Tiny footprint** -- 6 dependencies. Ships TypeScript source directly, no build step.
 
 ## Install
 
@@ -61,38 +71,34 @@ Most image generation tools make you open a browser, wait in a queue, click thro
 npm install -g nanaban
 ```
 
-Needs Node 18+. That's the only requirement.
+Requires Node 18+. That is the only dependency.
 
-Want to work from source instead?
+From source:
 
 ```bash
 git clone https://github.com/199-biotechnologies/nanaban.git
 cd nanaban && npm install && npm link
 ```
 
-## Setup (30 seconds)
+## Quick Start
 
-You need a Google Gemini API key. It's free and takes a minute:
-
-1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
-2. Sign in with any Google account
-3. Click **Create API Key**
-4. Pick any Google Cloud project (or let it create one for you)
-5. Copy the key — it starts with `AIzaSy...`
-
-Then store it once:
+Get a free API key from [Google AI Studio](https://aistudio.google.com/apikey) (takes 30 seconds), then:
 
 ```bash
 nanaban auth set AIzaSy...
+nanaban "a fox in snow"
 ```
 
-That's it. The key persists across sessions. You can also set `GEMINI_API_KEY` or `GOOGLE_API_KEY` as an environment variable if you prefer.
+Done. The key persists across sessions. You can also set `GEMINI_API_KEY` or `GOOGLE_API_KEY` as environment variables.
 
-Check what's configured anytime:
+## How It Works
 
-```bash
-nanaban auth
-```
+1. You type a prompt.
+2. nanaban sends it to the Gemini image generation API (Nano Banana 2 or Pro model).
+3. The API returns raw image bytes.
+4. nanaban auto-names the file from your prompt, saves it, and prints the path to stdout.
+
+No temp files, no intermediate formats, no browser. The entire round trip takes about 3 seconds on the default model.
 
 ## Usage
 
@@ -113,7 +119,7 @@ nanaban edit photo.png "add sunglasses"   # edit an existing image
 | `-o, --output <file>` | Output path | auto from prompt |
 | `--ar <ratio>` | Aspect ratio (see table below) | `1:1` |
 | `--size <size>` | Resolution: `1k` `2k` `4k` | `1k` |
-| `--pro` | Use Pro model — better detail, ~2x cost | off |
+| `--pro` | Use Pro model -- better detail, ~2x cost | off |
 | `--neg <text>` | What to keep out of the image | |
 | `-r, --ref <file>` | Reference image (style/content guidance) | |
 | `--open` | Open in your default viewer after generating | off |
@@ -124,7 +130,7 @@ Every flag works with both `nanaban "prompt"` and `nanaban edit`.
 
 ### Aspect Ratios
 
-14 aspect ratios — from square to extreme panoramic:
+14 aspect ratios, from square to extreme panoramic:
 
 | Ratio | Shorthand | Good for |
 |-------|-----------|----------|
@@ -145,7 +151,7 @@ Every flag works with both `nanaban "prompt"` and `nanaban edit`.
 
 Note: `1:4`, `4:1`, `1:8`, `8:1` are only available on the NB2 (default) model. Pro supports the standard 10 ratios.
 
-## Reference images
+## Reference Images
 
 Pass any image as a style or content reference with `-r`:
 
@@ -155,9 +161,9 @@ nanaban "modern living room" -r color_palette.jpg
 nanaban "product shot" -r brand_reference.png
 ```
 
-The model picks up on the visual language of your reference — color palette, composition, texture, artistic style — and applies it to your prompt. Useful for keeping a consistent look across a batch of images, matching brand aesthetics, or steering the output toward a specific vibe without writing a 200-word prompt.
+The model picks up on the visual language of your reference -- color palette, composition, texture, artistic style -- and applies it to your prompt. Useful for keeping a consistent look across a batch of images, matching brand aesthetics, or steering output toward a specific vibe without writing a 200-word prompt.
 
-## Editing existing images
+## Editing Existing Images
 
 ```bash
 nanaban edit photo.png "remove the background"
@@ -165,20 +171,20 @@ nanaban edit headshot.png "make it a pencil sketch"
 nanaban edit product.png "place on a marble table" --ar wide
 ```
 
-Takes a source image and your edit instruction. Same flags apply — you can change aspect ratio, resolution, use Pro for finer edits.
+Takes a source image and your edit instruction. Same flags apply -- change aspect ratio, resolution, or use Pro for finer edits.
 
 ## Models
 
 | Model | Flag | Speed | Best for |
 |-------|------|-------|----------|
-| **NB2** (default) | — | ~3s | Quick iterations, bulk generation, drafts |
+| **NB2** (default) | -- | ~3s | Quick iterations, bulk generation, drafts |
 | **Pro** | `--pro` | ~8s | Final assets, detail-heavy work, text in images |
 
 Both run on Gemini's image generation models (`gemini-3.1-flash-image-preview` and `gemini-3-pro-image-preview`).
 
-## For LLM agents and scripts
+## For LLM Agents and Scripts
 
-`--json` gives you machine-readable output. No spinners, no colors, no ambiguity:
+`--json` gives machine-readable output. No spinners, no colors, no ambiguity:
 
 ```bash
 nanaban "a red circle" --json
@@ -209,9 +215,9 @@ Error codes: `AUTH_MISSING`, `AUTH_INVALID`, `AUTH_EXPIRED`, `PROMPT_MISSING`, `
 
 Exit codes: `0` success, `1` runtime error, `2` usage error.
 
-## Piping
+### Piping
 
-stdout is always just the file path. Metadata goes to stderr. So these compose naturally:
+stdout is always just the file path. Metadata goes to stderr. These compose naturally:
 
 ```bash
 nanaban "a cat" | xargs open                              # generate and open
@@ -224,7 +230,7 @@ cat prompts.txt | while read p; do nanaban "$p"; done      # batch generate
 Your prompt becomes the filename. Common words get stripped, capped at 6 words, joined with underscores:
 
 ```
-"a fox in a snowy forest at dawn" → fox_snowy_forest_dawn.png
+"a fox in a snowy forest at dawn" -> fox_snowy_forest_dawn.png
 ```
 
 Collisions auto-increment: `fox_snowy_forest.png`, `fox_snowy_forest_2.png`, `fox_snowy_forest_3.png`.
@@ -233,16 +239,28 @@ Collisions auto-increment: `fox_snowy_forest.png`, `fox_snowy_forest_2.png`, `fo
 
 Deliberately small:
 
-- `@google/genai` + `google-auth-library` — Gemini API access
-- `commander` — CLI parsing (~90KB)
-- `nanospinner` — terminal spinner (~3KB)
-- `picocolors` — terminal colors (~3KB)
-- `tsx` + `typescript` — runs TypeScript source directly, no build step
+- `@google/genai` + `google-auth-library` -- Gemini API access
+- `commander` -- CLI parsing (~90KB)
+- `nanospinner` -- terminal spinner (~3KB)
+- `picocolors` -- terminal colors (~3KB)
+- `tsx` + `typescript` -- runs TypeScript source directly, no build step
+
+## Contributing
+
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-ISC
+[MIT](LICENSE)
 
-## Author
+---
 
-[Boris Djordjevic](https://github.com/199-biotechnologies)
+<p align="center">
+  Built by <a href="https://github.com/longevityboris">Boris Djordjevic</a> at <a href="https://github.com/199-biotechnologies">199 Biotechnologies</a> | <a href="https://paperfoot.ai">Paperfoot AI</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/199-biotechnologies/nanaban/stargazers"><img src="https://img.shields.io/github/stars/199-biotechnologies/nanaban?style=for-the-badge&logo=github&label=%E2%AD%90%20Star%20this%20repo&color=yellow" alt="Star this repo"></a>
+  &nbsp;
+  <a href="https://x.com/longevityboris"><img src="https://img.shields.io/badge/Follow_%40longevityboris-000000?style=for-the-badge&logo=x&logoColor=white" alt="Follow @longevityboris on X"></a>
+</p>
