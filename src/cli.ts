@@ -1,9 +1,15 @@
 import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import { runGenerate } from './commands/generate.js';
 import { runEdit } from './commands/edit.js';
 import { runAuthStatus, runAuthSet } from './commands/auth.js';
+import { runAgentInfo } from './commands/agent_info.js';
+import { runSkillInstall, runSkillStatus } from './commands/skill.js';
 
-const VERSION = '3.1.0';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const VERSION = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8')).version;
 
 const program = new Command();
 
@@ -61,8 +67,35 @@ authCmd
     await runAuthSet(key, opts.json);
   });
 
+const agentInfoCmd = new Command('agent-info')
+  .description('machine-readable capability manifest')
+  .action(() => {
+    runAgentInfo();
+  });
+
+const skillCmd = new Command('skill')
+  .description('manage agent skill files');
+
+skillCmd
+  .command('install')
+  .description('install skill to Claude, Codex, and Gemini')
+  .option('--json', 'JSON output', false)
+  .action(async (opts) => {
+    await runSkillInstall(opts.json);
+  });
+
+skillCmd
+  .command('status')
+  .description('show installed skill locations')
+  .option('--json', 'JSON output', false)
+  .action(async (opts) => {
+    await runSkillStatus(opts.json);
+  });
+
 program.addCommand(editCmd);
 program.addCommand(authCmd);
+program.addCommand(agentInfoCmd);
+program.addCommand(skillCmd);
 
 program.parseAsync().catch((err) => {
   process.stderr.write(`Error: ${err.message}\n`);

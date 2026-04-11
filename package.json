@@ -1,6 +1,6 @@
 {
   "name": "nanaban",
-  "version": "3.1.2",
+  "version": "3.2.0",
   "type": "module",
   "description": "Image generation from the terminal. Two words and you have a picture.",
   "bin": {
@@ -14,7 +14,7 @@
     "README.md"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --import tsx/esm --test tests/*.test.mts"
   },
   "keywords": [
     "image-generation",
