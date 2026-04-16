@@ -6,10 +6,12 @@ import type { NB2Error } from './errors.js';
 export interface GenerateResult {
   file: string;
   model: string;
+  transport: string;
   width: number;
   height: number;
   sizeBytes: number;
   durationMs: number;
+  costUsd?: number;
 }
 
 export interface Output {
@@ -45,10 +47,10 @@ export class HumanOutput implements Output {
     if (!this.quiet) {
       const kb = Math.round(r.sizeBytes / 1024);
       const sec = (r.durationMs / 1000).toFixed(1);
-      const meta = pc.dim(`     ${r.width}x${r.height} | ${kb} KB | ${sec}s | ${r.model}`);
+      const cost = r.costUsd !== undefined ? ` | $${r.costUsd.toFixed(4)}` : '';
+      const meta = pc.dim(`     ${r.width}x${r.height} | ${kb} KB | ${sec}s${cost} | ${r.model} (${r.transport})`);
       process.stderr.write(meta + '\n');
     }
-    // Always print file path to stdout (pipeable)
     process.stdout.write(r.file + '\n');
   }
 
@@ -59,14 +61,11 @@ export class HumanOutput implements Output {
     } else {
       process.stderr.write(pc.red(`Error: ${err.message}`) + '\n');
     }
-    // Always show error code — errors must never be silenced
     process.stderr.write(pc.dim(`     code: ${err.code}`) + '\n');
   }
 
   info(text: string): void {
-    if (!this.quiet) {
-      process.stderr.write(pc.dim(text) + '\n');
-    }
+    if (!this.quiet) process.stderr.write(pc.dim(text) + '\n');
   }
 
   authStatus(method: string, detail: string, valid: boolean): void {
@@ -80,31 +79,27 @@ export class JsonOutput implements Output {
   stopSpin(): void {}
 
   success(r: GenerateResult): void {
-    const out = {
+    const out: Record<string, unknown> = {
       status: 'success',
       file: r.file,
       model: r.model,
+      transport: r.transport,
       dimensions: { width: r.width, height: r.height },
       size_bytes: r.sizeBytes,
       duration_ms: r.durationMs,
     };
+    if (r.costUsd !== undefined) out.cost_usd = r.costUsd;
     process.stdout.write(JSON.stringify(out) + '\n');
   }
 
   error(err: NB2Error): void {
-    const out = {
-      status: 'error',
-      code: err.code,
-      message: err.message,
-    };
-    process.stdout.write(JSON.stringify(out) + '\n');
+    process.stdout.write(JSON.stringify({ status: 'error', code: err.code, message: err.message }) + '\n');
   }
 
   info(_text: string): void {}
 
   authStatus(method: string, detail: string, valid: boolean): void {
-    const out = { method, detail, valid };
-    process.stdout.write(JSON.stringify(out) + '\n');
+    process.stdout.write(JSON.stringify({ method, detail, valid }) + '\n');
   }
 }
 

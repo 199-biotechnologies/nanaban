@@ -6,9 +6,11 @@ export type ErrorCode =
   | 'IMAGE_NOT_FOUND'
   | 'GENERATION_FAILED'
   | 'RATE_LIMITED'
-  | 'NETWORK_ERROR';
+  | 'NETWORK_ERROR'
+  | 'MODEL_NOT_FOUND'
+  | 'TRANSPORT_UNAVAILABLE'
+  | 'CAPABILITY_UNSUPPORTED';
 
-// Exit codes: 0=success, 1=runtime error, 2=usage error
 const EXIT_CODES: Record<ErrorCode, number> = {
   AUTH_MISSING: 1,
   AUTH_INVALID: 1,
@@ -18,6 +20,9 @@ const EXIT_CODES: Record<ErrorCode, number> = {
   GENERATION_FAILED: 1,
   RATE_LIMITED: 1,
   NETWORK_ERROR: 1,
+  MODEL_NOT_FOUND: 2,
+  TRANSPORT_UNAVAILABLE: 1,
+  CAPABILITY_UNSUPPORTED: 2,
 };
 
 export class NB2Error extends Error {

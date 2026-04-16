@@ -1,0 +1,30 @@
+import type { ReferenceImage } from './reference.js';
+
+export type AspectRatio =
+  | '1:1' | '2:3' | '3:2' | '3:4' | '4:3' | '4:5' | '5:4'
+  | '9:16' | '16:9' | '21:9'
+  | '1:4' | '4:1' | '1:8' | '8:1';
+
+export type ImageSize = '0.5K' | '1K' | '2K' | '4K';
+
+export type GenerationMode = 'generate' | 'edit';
+
+export interface ImageRequest {
+  mode: GenerationMode;
+  prompt: string;
+  negativePrompt?: string;
+  aspectRatio?: AspectRatio;
+  imageSize?: ImageSize;
+  referenceImages?: ReferenceImage[];
+}
+
+export interface ImageResult {
+  buffer: Buffer;
+  mimeType: string;
+  width: number;
+  height: number;
+  modelId: string;
+  transport: 'gemini-direct' | 'openrouter';
+  durationMs: number;
+  costUsd?: number;
+}

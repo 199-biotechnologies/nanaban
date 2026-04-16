@@ -7,6 +7,7 @@ const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
 
 export interface NB2Config {
   apiKey?: string;
+  openRouterKey?: string;
   oauthClientId?: string;
   oauthClientSecret?: string;
 }
@@ -26,12 +27,21 @@ export async function writeConfig(config: NB2Config): Promise<void> {
 }
 
 export async function getStoredKey(): Promise<string | undefined> {
-  const config = await readConfig();
-  return config.apiKey;
+  return (await readConfig()).apiKey;
 }
 
 export async function setStoredKey(key: string): Promise<void> {
   const config = await readConfig();
   config.apiKey = key;
+  await writeConfig(config);
+}
+
+export async function getStoredOpenRouterKey(): Promise<string | undefined> {
+  return (await readConfig()).openRouterKey;
+}
+
+export async function setStoredOpenRouterKey(key: string): Promise<void> {
+  const config = await readConfig();
+  config.openRouterKey = key;
   await writeConfig(config);
 }
