@@ -1,21 +1,10 @@
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { MODELS } from '../core/models.js';
-
-function getVersion(): string {
-  try {
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    return JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8')).version;
-  } catch {
-    return 'unknown';
-  }
-}
+import { VERSION } from '../version.js';
 
 export function runAgentInfo(): void {
   const manifest = {
     name: 'nanaban',
-    version: getVersion(),
+    version: VERSION,
     description: 'Image generation from the terminal — Nano Banana (Gemini) and GPT Image via one CLI',
     transports: [
       {
@@ -130,9 +119,10 @@ export function runAgentInfo(): void {
     env_vars: [
       { name: 'GEMINI_API_KEY', description: 'Gemini API key (gemini-direct transport)' },
       { name: 'GOOGLE_API_KEY', description: 'Alternative Gemini API key' },
-      { name: 'OPENROUTER_API_KEY', description: 'OpenRouter key — reaches both Gemini and OpenAI image models' },
+      { name: 'OPENROUTER_API_KEY', description: 'OpenRouter key — reaches Nano Banana + GPT-5 Image (not gpt-image-2)' },
       { name: 'NANABAN_OAUTH_CLIENT_ID', description: 'OAuth client ID for Gemini CLI auth' },
       { name: 'NANABAN_OAUTH_CLIENT_SECRET', description: 'OAuth client secret for Gemini CLI auth' },
+      { name: 'NANABAN_CODEX_CARRIER', description: 'Escape hatch — overrides the Codex carrier model used by codex-oauth (default: gpt-5.4). Change if OpenAI rotates the Codex model list and gpt-5.4 stops being accepted.' },
     ],
     auth_files: [
       { path: '~/.codex/auth.json', description: 'ChatGPT Plus/Pro OAuth bundle from `codex login` — enables codex-oauth transport (gpt-image-2, billed against ChatGPT sub)' },

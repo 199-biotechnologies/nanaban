@@ -1,8 +1,8 @@
 {
   "name": "nanaban",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "type": "module",
-  "description": "Image generation from the terminal — Nano Banana (Gemini) and GPT Image via one CLI. One key (Gemini OR OpenRouter) is enough.",
+  "description": "Image generation from the terminal — GPT Image 2 (free on ChatGPT Plus/Pro via Codex OAuth), Nano Banana (Gemini), and GPT-5 Image, routed through one CLI.",
   "bin": {
     "nanaban": "./bin/nanaban.mjs"
   },
@@ -14,17 +14,21 @@
     "README.md"
   ],
   "scripts": {
-    "test": "node --import tsx/esm --test tests/*.test.mts"
+    "test": "node --import tsx/esm --test tests/*.test.mts",
+    "build:binaries": "./scripts/build-binaries.sh"
   },
   "keywords": [
     "image-generation",
+    "gpt-image-2",
+    "gpt-image",
     "gemini",
     "openai",
     "openrouter",
-    "gpt-image",
+    "chatgpt",
+    "codex",
+    "nano-banana",
     "cli",
     "ai",
-    "nano-banana",
     "text-to-image"
   ],
   "author": "Boris Djordjevic",

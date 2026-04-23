@@ -5,7 +5,7 @@
 <h1 align="center">nanaban</h1>
 
 <p align="center">
-  Image generation from the terminal. Nano Banana (Gemini) <strong>and</strong> GPT Image. One CLI, one key.
+  Image generation from the terminal. <strong>GPT Image 2</strong> free on ChatGPT Plus/Pro, Nano Banana (Gemini), and GPT-5 Image. One CLI.
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  Type a prompt. Get an image. Three seconds, one command, zero browser tabs. nanaban is a CLI for AI image generation that works for humans typing prompts and LLM agents calling <code>--json</code>. It runs on Google's Nano Banana (Gemini) and OpenAI GPT-5 Image — pick whichever, or let nanaban choose based on the keys you have.
+  Type a prompt. Get an image. One command, zero browser tabs. nanaban is a CLI for AI image generation that works for humans typing prompts and LLM agents calling <code>--json</code>. It runs OpenAI's GPT Image 2 (free against your ChatGPT Plus/Pro subscription via Codex OAuth), Google's Nano Banana (Gemini), and OpenAI GPT-5 Image — pick whichever, or let nanaban choose based on the auth you have.
 </p>
 
 <p align="center">
@@ -50,7 +50,7 @@
 </tr>
 </table>
 
-Every image on this page was generated with nanaban. ~3 seconds each, straight from the terminal.
+Every image on this page was generated with nanaban. Straight from the terminal.
 
 ## Why This Exists
 
@@ -58,22 +58,48 @@ Most AI image generators make you open a browser, wait in a queue, click through
 
 nanaban fixes that:
 
-- **One command** -- type your prompt, get a file. No browser, no signup flow, no queue.
-- **Two model families, one CLI** -- Nano Banana (Gemini) for the cheap/fast/extended-ratio default; GPT-5 Image for OpenAI's strong text and UI rendering.
-- **Auto-names files** -- `"a fox in a snowy forest at dawn"` becomes `fox_snowy_forest_dawn.png`. No more `image_032_final_v2.png`.
-- **Built for scripts** -- stdout is always the file path. `nanaban "a cat" | xargs open` just works.
-- **Built for LLM agents** -- `--json` gives structured output with cost. Plug it into any AI pipeline.
-- **Tiny footprint** -- runs TypeScript source directly, no build step.
+- **One command** — type your prompt, get a file. No browser, no signup flow, no queue.
+- **Free GPT Image 2** for ChatGPT Plus/Pro subscribers — nanaban signs in with your Codex OAuth token, so every generation counts against your ChatGPT image quota, not your OpenAI API balance. Zero marginal cost.
+- **Three model families, one CLI** — GPT Image 2 (OpenAI's April 2026 flagship) when Codex auth is present, Nano Banana (Gemini) for the cheap/fast default with extended ratios, GPT-5 Image for OpenAI's text/UI work via OpenRouter.
+- **Auto-names files** — `"a fox in a snowy forest at dawn"` becomes `fox_snowy_forest_dawn.png`.
+- **Built for scripts** — stdout is always the file path. `nanaban "a cat" | xargs open` just works.
+- **Built for LLM agents** — `--json` gives structured output with cost. `nanaban agent-info` is a machine-readable manifest of every model, flag, transport, and error code.
+- **Tiny footprint** — one Node package, or one standalone binary with no runtime required.
 
 ## Install
+
+Three options, pick whichever matches how you like to install CLIs:
+
+**Homebrew** (macOS/Linux, no Node needed):
+
+```bash
+brew install paperfoot/tap/nanaban
+# (tap setup: `brew tap paperfoot/tap https://github.com/paperfoot/homebrew-tap`)
+```
+
+**Standalone binary** (no Node needed, pick your platform):
+
+```bash
+# macOS (Apple Silicon)
+curl -L https://github.com/paperfoot/nanaban-cli/releases/latest/download/nanaban-darwin-arm64 -o /usr/local/bin/nanaban && chmod +x /usr/local/bin/nanaban
+
+# macOS (Intel)
+curl -L https://github.com/paperfoot/nanaban-cli/releases/latest/download/nanaban-darwin-x64 -o /usr/local/bin/nanaban && chmod +x /usr/local/bin/nanaban
+
+# Linux (x86_64)
+curl -L https://github.com/paperfoot/nanaban-cli/releases/latest/download/nanaban-linux-x64 -o /usr/local/bin/nanaban && chmod +x /usr/local/bin/nanaban
+
+# Linux (arm64)
+curl -L https://github.com/paperfoot/nanaban-cli/releases/latest/download/nanaban-linux-arm64 -o /usr/local/bin/nanaban && chmod +x /usr/local/bin/nanaban
+```
+
+**npm** (if you already have Node 18+):
 
 ```bash
 npm install -g nanaban
 ```
 
-Requires Node 18+. That is the only dependency.
-
-From source:
+**From source:**
 
 ```bash
 git clone https://github.com/paperfoot/nanaban-cli.git
@@ -82,75 +108,84 @@ cd nanaban && npm install && npm link
 
 ## Quick Start
 
-Pick one path:
+Three paths. Pick the one you already have credentials for:
 
-**Gemini direct** (free tier available, fastest for Nano Banana):
+**Free via ChatGPT Plus/Pro** (recommended if you have a sub):
 
 ```bash
-# Get a key from https://aistudio.google.com/apikey (~30 seconds)
-nanaban auth set AIzaSy...
-nanaban "a fox in snow"
+# One-time: log in with your ChatGPT account
+codex login
+# Then just:
+nanaban "a fox in snow"          # uses GPT Image 2, billed to your ChatGPT sub ($0)
 ```
 
-**OpenRouter** (one key for both Nano Banana AND GPT-5 Image):
+**OpenRouter** (one key for Nano Banana AND GPT-5 Image):
 
 ```bash
 # Get a key from https://openrouter.ai/keys
 export OPENROUTER_API_KEY=sk-or-v1-...
-nanaban "a fox in snow"                    # uses Nano Banana
+nanaban "a fox in snow"                    # uses Nano Banana 2
 nanaban "a fox in snow" --model gpt5-mini  # uses GPT-5 Image Mini
 ```
 
-You only need **one** key. nanaban detects what's available and routes automatically. Run `nanaban auth` to see what's reachable.
+**Gemini direct** (free tier available):
+
+```bash
+# Get a key from https://aistudio.google.com/apikey
+nanaban auth set AIzaSy...
+nanaban "a fox in snow"
+```
+
+You only need **one** path configured. nanaban detects what's available and routes automatically. Run `nanaban auth` to see what's reachable. The default model auto-switches to `gpt-image-2` when Codex auth is present, otherwise `nb2`.
 
 ## Models
 
 | Id | Family | Best for | Aspect ratios | Sizes | ~Cost/img |
 |----|--------|----------|---------------|-------|-----------|
-| `nb2` (default) | Gemini Nano Banana 2 | Fast, cheap, full ratio range | All + extended (1:4, 4:1, 1:8, 8:1) | 0.5K-4K | $0.067 |
-| `nb2-pro` (`--pro`) | Gemini Nano Banana Pro | Higher quality detail | Standard 10 | 1K-4K | $0.136 |
+| `gpt-image-2` (default with Codex auth) | OpenAI | Strong text, agentic planning, high-fidelity | 1:1, 2:3, 3:2 | 1K only | **$0** on ChatGPT Plus/Pro |
+| `nb2` (default without Codex) | Gemini Nano Banana 2 | Fast, cheap, full ratio range | All + extended (1:4, 4:1, 1:8, 8:1) | 0.5K–4K | $0.067 |
+| `nb2-pro` (`--pro`) | Gemini Nano Banana Pro | Higher quality detail | Standard 10 | 1K–4K | $0.136 |
 | `gpt5` | OpenAI GPT-5 Image | Strong text/UI rendering | 1:1, 2:3, 3:2 | 1K only | $0.193 |
 | `gpt5-mini` | OpenAI GPT-5 Image Mini | Cheaper OpenAI option | 1:1, 2:3, 3:2 | 1K only | $0.041 |
 
-Costs are typical per-image rates via OpenRouter. Direct Gemini pricing follows Google's published rates.
+Aliases: `gi2`/`img2`/`images2` → `gpt-image-2`, `pro` → `nb2-pro`, `flash` → `nb2`, `mini` → `gpt5-mini`, `gpt` → `gpt5`.
 
-OpenAI models (`gpt5`, `gpt5-mini`) currently ignore non-square aspect ratios — output is always 1024×1024. nanaban accepts the `--ar` flag for them but the API itself doesn't honor it.
+Costs are typical per-image rates via the standard paid API path. **gpt-image-2 is free** when routed through Codex OAuth because it decrements your ChatGPT Plus/Pro image quota rather than an API balance.
 
 ## Auth
 
-nanaban detects keys in this order and routes automatically. **Any single key is enough.**
+nanaban detects credentials in this order and routes automatically. **Any single path is enough.**
 
-| Key | Reaches | Source |
-|-----|---------|--------|
-| `OPENROUTER_API_KEY` | **All four models** | env var |
-| Stored OpenRouter key | All four models | `nanaban auth set-openrouter <key>` |
-| `GEMINI_API_KEY` / `GOOGLE_API_KEY` | nb2, nb2-pro | env var |
-| Stored Gemini key | nb2, nb2-pro | `nanaban auth set <key>` |
-| Gemini OAuth | nb2, nb2-pro | `~/.gemini/oauth_creds.json` + OAuth client creds |
+| Source | Reaches | How to set |
+|--------|---------|------------|
+| `~/.codex/auth.json` (Codex OAuth) | `gpt-image-2` at $0 | `codex login` |
+| `OPENROUTER_API_KEY` env | `nb2`, `nb2-pro`, `gpt5`, `gpt5-mini` | env var |
+| Stored OpenRouter key | same as above | `nanaban auth set-openrouter <key>` |
+| `GEMINI_API_KEY` / `GOOGLE_API_KEY` | `nb2`, `nb2-pro` | env var |
+| Stored Gemini key | `nb2`, `nb2-pro` | `nanaban auth set <key>` |
+| Gemini OAuth | `nb2`, `nb2-pro` | `~/.gemini/oauth_creds.json` + OAuth client creds |
 
 ### Routing policy
 
-1. **OpenRouter is the default.** One key reaches every model, runs on its own rate bucket, and the usage is billed per-call — no free-tier surprises.
-2. **Automatic fallback.** If the preferred transport returns a transient failure (`RATE_LIMITED`, `NETWORK_ERROR`, `AUTH_INVALID`, `AUTH_EXPIRED`) nanaban retries on the next available transport. The success envelope gains a `fallbacks` array so the caller sees what happened.
-3. **`--via <transport>` pins a route.** No fallback when explicit.
+1. **Preference order**: `codex-oauth` → `openrouter` → `gemini-direct`. `codex-oauth` comes first because it's free for Plus/Pro subscribers.
+2. **Automatic fallback**: if the preferred transport returns a transient failure (`RATE_LIMITED`, `NETWORK_ERROR`, `AUTH_INVALID`, `AUTH_EXPIRED`) nanaban retries on the next available transport. The success envelope gains a `fallbacks` array so the caller sees what happened.
+3. **`--via <transport>` pins a route.** No fallback when explicit. Aliases: `codex`/`plus` → `codex-oauth`, `gemini`/`google` → `gemini-direct`, `or` → `openrouter`.
 
-**Recommended for agents**: set both keys. `OPENROUTER_API_KEY` is the primary, `GEMINI_API_KEY` is the failover. Most "my agent is stupid, it didn't retry" moments come from only having one key configured.
-
-Check what's reachable: `nanaban auth`.
+**Recommended stack for agents**: `codex login` + `OPENROUTER_API_KEY`. gpt-image-2 is free, OpenRouter is the failover for other models. Check what's reachable with `nanaban auth`.
 
 ## Usage
 
 ```bash
-nanaban "prompt"                          # default: nb2 via best transport
+nanaban "prompt"                          # auto-picks best model for your auth
 nanaban "prompt" -o sunset.png            # custom filename
-nanaban "prompt" --ar wide --size 2k      # 16:9, high resolution
+nanaban "prompt" --ar wide --size 2k      # 16:9, high resolution (Gemini only)
 nanaban "prompt" --pro                    # Nano Banana Pro
-nanaban "prompt" --model gpt5             # GPT-5 Image (needs OpenRouter)
-nanaban "prompt" --model gpt5-mini        # GPT-5 Image Mini
-nanaban "prompt" --via openrouter         # force OpenRouter for any model
+nanaban "prompt" --model gpt-image-2      # force GPT Image 2 (needs Codex auth)
+nanaban "prompt" --model gpt5-mini        # force GPT-5 Image Mini
+nanaban "prompt" --via codex-oauth        # force the ChatGPT sub route
 nanaban "prompt" --neg "blurry, text"     # negative prompt (Gemini only)
 nanaban "prompt" -r style.png             # reference image
-nanaban edit photo.png "add sunglasses"   # edit existing image
+nanaban edit photo.png "add sunglasses"   # edit existing image (works with every model)
 ```
 
 ### Flags
@@ -161,8 +196,8 @@ nanaban edit photo.png "add sunglasses"   # edit existing image
 | `--ar <ratio>` | Aspect ratio (see table below) | `1:1` |
 | `--size <size>` | Resolution: `0.5k` `1k` `2k` `4k` (model-dependent) | `1k` |
 | `--pro` | Use Nano Banana Pro (alias for `--model nb2-pro`) | off |
-| `--model <id>` | `nb2`, `nb2-pro`, `gpt5`, `gpt5-mini` | `nb2` |
-| `--via <transport>` | Force `gemini-direct` or `openrouter` | auto |
+| `--model <id>` | `gpt-image-2`, `nb2`, `nb2-pro`, `gpt5`, `gpt5-mini` | auto (gpt-image-2 with Codex auth, else `nb2`) |
+| `--via <transport>` | `codex-oauth`, `gemini-direct`, `openrouter` | auto |
 | `--neg <text>` | Negative prompt (Gemini only) | |
 | `-r, --ref <file>` | Reference image (style/content guidance) | |
 | `--open` | Open in default viewer after generating | off |
@@ -190,7 +225,7 @@ nanaban edit photo.png "add sunglasses"   # edit existing image
 | `1:4` | | Tall strips, infographic panels |
 | `1:8` | | Extreme vertical banners |
 
-Note: `1:4`, `4:1`, `1:8`, `8:1` are NB2-only. NB2 Pro supports the standard 10. GPT-5 Image / Mini support only `1:1`, `2:3`, `3:2` and the API ignores even those (always returns square). nanaban surfaces capability mismatches as `CAPABILITY_UNSUPPORTED` errors before any HTTP call.
+Note: `1:4`/`4:1`/`1:8`/`8:1` are NB2-only. NB2 Pro supports the standard 10. GPT Image 2 and GPT-5 Image / Mini support only `1:1`, `2:3`, `3:2` (mapped to 1024×1024 / 1024×1536 / 1536×1024). nanaban surfaces capability mismatches as `CAPABILITY_UNSUPPORTED` errors before any HTTP call.
 
 ## Reference Images
 
@@ -202,7 +237,7 @@ nanaban "modern living room" -r color_palette.jpg
 nanaban "product shot" -r brand_reference.png
 ```
 
-The model picks up on the visual language of your reference -- color palette, composition, texture, artistic style -- and applies it to your prompt. Useful for keeping a consistent look across a batch of images, matching brand aesthetics, or steering output toward a specific vibe without writing a 200-word prompt.
+The model picks up on the visual language of your reference — color palette, composition, texture, artistic style — and applies it to your prompt. Useful for keeping a consistent look across a batch of images, matching brand aesthetics, or steering output toward a specific vibe without writing a 200-word prompt.
 
 ## Editing Existing Images
 
@@ -212,7 +247,7 @@ nanaban edit headshot.png "make it a pencil sketch"
 nanaban edit product.png "place on a marble table" --ar wide
 ```
 
-Takes a source image and your edit instruction. Same flags apply -- pick a model, change aspect ratio, resolution, or use Pro for finer edits.
+Takes a source image and your edit instruction. Same flags apply — pick a model, change aspect ratio, resolution, or use Pro for finer edits.
 
 ## For LLM Agents and Scripts
 
@@ -226,25 +261,25 @@ nanaban "a red circle" --json
 {
   "status": "success",
   "file": "/Users/you/red_circle.png",
-  "model": "google/gemini-3.1-flash-image-preview-20260226",
-  "transport": "openrouter",
+  "model": "gpt-image-2",
+  "transport": "codex-oauth",
   "dimensions": { "width": 1024, "height": 1024 },
   "size_bytes": 1247283,
   "duration_ms": 12400,
-  "cost_usd": 0.067
+  "cost_usd": 0
 }
 ```
 
-`cost_usd` appears when the transport reports it (currently OpenRouter only).
+`cost_usd` is `0` for codex-oauth (billed against your ChatGPT sub), and reflects actual cost for OpenRouter/Gemini paid paths.
 
 Errors come back in the same shape, with a `hint` the agent can act on:
 
 ```json
 {
   "status": "error",
-  "code": "RATE_LIMITED",
-  "message": "Gemini quota exceeded (tried openrouter:RATE_LIMITED → gemini-direct:RATE_LIMITED)",
-  "hint": "add a second provider so nanaban can fall back automatically: `nanaban auth set-openrouter <key>` or set OPENROUTER_API_KEY."
+  "code": "AUTH_MISSING",
+  "message": "No authentication configured. GPT Image 2 needs one of Codex OAuth (run `codex login`).",
+  "hint": "pick one: `codex login` (free gpt-image-2 via ChatGPT Plus/Pro) | `nanaban auth set-openrouter <key>` | set GEMINI_API_KEY / OPENROUTER_API_KEY."
 }
 ```
 
@@ -254,9 +289,9 @@ When auto-fallback kicks in and eventually succeeds, the success envelope carrie
 {
   "status": "success",
   "file": "/Users/you/fox_snow.png",
-  "transport": "gemini-direct",
+  "transport": "openrouter",
   "fallbacks": [
-    { "transport": "openrouter", "code": "RATE_LIMITED", "message": "..." }
+    { "transport": "codex-oauth", "code": "RATE_LIMITED", "message": "..." }
   ]
 }
 ```
@@ -272,10 +307,21 @@ Discover everything machine-readably: `nanaban agent-info`.
 stdout is always just the file path. Metadata goes to stderr. These compose naturally:
 
 ```bash
-nanaban "a cat" | xargs open                              # generate and open
+nanaban "a cat" | xargs open                               # generate and open
 nanaban "a cat" 2>/dev/null | pbcopy                       # copy path to clipboard
 cat prompts.txt | while read p; do nanaban "$p"; done      # batch generate
 ```
+
+### Skill install for Claude / Codex / Gemini
+
+nanaban ships a tiny skill file so Claude Code, Codex, and Gemini know when to invoke it:
+
+```bash
+nanaban skill install   # writes ~/.claude/skills/nanaban/SKILL.md and peers
+nanaban skill status    # shows where it's installed
+```
+
+The skill description is intentionally terse — the full capability surface lives in `nanaban agent-info`, which the agent queries on demand. This keeps the skill stable across nanaban versions.
 
 ## Auto-naming
 
@@ -291,12 +337,13 @@ Collisions auto-increment: `fox_snowy_forest.png`, `fox_snowy_forest_2.png`, `fo
 
 Deliberately small:
 
-- `@google/genai` + `google-auth-library` -- Gemini API access
-- `commander` -- CLI parsing (~90KB)
-- `nanospinner` -- terminal spinner (~3KB)
-- `picocolors` -- terminal colors (~3KB)
-- `tsx` + `typescript` -- runs TypeScript source directly, no build step
-- OpenRouter -- plain `fetch`, no SDK
+- `@google/genai` + `google-auth-library` — Gemini API access
+- `commander` — CLI parsing (~90KB)
+- `nanospinner` — terminal spinner (~3KB)
+- `picocolors` — terminal colors (~3KB)
+- `tsx` + `typescript` — runs TypeScript source directly in npm/source installs
+- OpenRouter, OpenAI Codex bridge — plain `fetch`, no SDK
+- Standalone binaries bundle everything via `bun build --compile`
 
 ## Contributing
 

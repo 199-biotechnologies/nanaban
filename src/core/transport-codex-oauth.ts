@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { loadReferenceImage } from './reference.js';
 import { NB2Error } from '../lib/errors.js';
-import type { ErrorCode } from '../lib/errors.js';
 import type { ImageRequest, ImageResult, AspectRatio } from './types.js';
 
 const ENDPOINT = 'https://chatgpt.com/backend-api/codex/responses';
@@ -42,9 +41,32 @@ export interface CodexOAuthAuth {
   accountId: string;
 }
 
+// Map a (status, error-code, message) triple to the right NB2Error. Used by
+// BOTH the non-OK HTTP branch AND the streamed response.failed/error branch —
+// a 429 delivered inside the SSE stream should trigger the same transient-
+// failure fallback logic as a 429 on the initial HTTP response.
+function classifyCodexError(
+  status: number | undefined,
+  code: string | undefined,
+  msg: string,
+): NB2Error {
+  if (status === 401 || code === 'unauthorized' || code === 'invalid_token') {
+    const hint = / — run \`codex login\`/.test(msg) ? '' : ' — run `codex login`';
+    return new NB2Error('AUTH_INVALID', `Codex OAuth token rejected${hint}. ${msg}`);
+  }
+  if (status === 403 || code === 'forbidden') {
+    return new NB2Error('AUTH_INVALID', `Codex bridge forbade this account: ${msg}`);
+  }
+  if (status === 429 || code === 'rate_limit_exceeded' || /rate.?limit|quota|exceeded/i.test(msg)) {
+    return new NB2Error('RATE_LIMITED', `Codex bridge rate-limited (ChatGPT sub quota): ${msg}`);
+  }
+  if (typeof status === 'number' && status >= 500) {
+    return new NB2Error('NETWORK_ERROR', `Codex backend ${status}: ${msg}`);
+  }
+  return new NB2Error('GENERATION_FAILED', msg || `Codex bridge returned status ${status ?? '?'}`);
+}
+
 // Streamed `response.failed` / `error` events carry their own status / message.
-// Classify them the same way as non-OK HTTP responses so the dispatch fallback
-// chain treats them as transient (retryable on another transport) when warranted.
 function classifyStreamFailure(parsed: any): NB2Error {
   const msg: string =
     parsed.response?.error?.message
@@ -58,22 +80,7 @@ function classifyStreamFailure(parsed: any): NB2Error {
   const code: string | undefined =
     parsed.response?.error?.code
     ?? parsed.error?.code;
-
-  const authHint = / — run \`codex login\`/.test(msg) ? '' : ' — run `codex login`';
-
-  if (status === 401 || code === 'unauthorized' || code === 'invalid_token') {
-    return new NB2Error('AUTH_INVALID', `Codex OAuth token rejected${authHint}. ${msg}`);
-  }
-  if (status === 403 || code === 'forbidden') {
-    return new NB2Error('AUTH_INVALID', `Codex bridge forbade this account: ${msg}`);
-  }
-  if (status === 429 || code === 'rate_limit_exceeded' || /rate.?limit|quota|exceeded/i.test(msg)) {
-    return new NB2Error('RATE_LIMITED', `Codex bridge rate-limited: ${msg}`);
-  }
-  if (typeof status === 'number' && status >= 500) {
-    return new NB2Error('NETWORK_ERROR', `Codex backend ${status}: ${msg}`);
-  }
-  return new NB2Error('GENERATION_FAILED', msg);
+  return classifyCodexError(status, code, msg);
 }
 
 // Parse one SSE event (lines already split, \n-separated) and return the
@@ -173,18 +180,13 @@ export async function generateViaCodexOAuth(
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     let detail = text;
-    try { detail = JSON.parse(text)?.error?.message || text; } catch { /* not json */ }
-    const code: ErrorCode =
-      res.status === 401 || res.status === 403 ? 'AUTH_INVALID'
-      : res.status === 429 ? 'RATE_LIMITED'
-      : res.status >= 500 ? 'NETWORK_ERROR'
-      : 'GENERATION_FAILED';
-    const prefix =
-      code === 'AUTH_INVALID' ? 'Codex OAuth token rejected — run `codex login`. '
-      : code === 'RATE_LIMITED' ? 'Codex bridge rate-limited (ChatGPT sub quota): '
-      : code === 'NETWORK_ERROR' ? `Codex backend ${res.status}: `
-      : `Codex backend ${res.status}: `;
-    throw new NB2Error(code, `${prefix}${detail}`);
+    let errCode: string | undefined;
+    try {
+      const parsed = JSON.parse(text);
+      detail = parsed?.error?.message || text;
+      errCode = parsed?.error?.code;
+    } catch { /* not json */ }
+    throw classifyCodexError(res.status, errCode, detail);
   }
 
   if (!res.body) throw new NB2Error('GENERATION_FAILED', 'Codex bridge returned empty body');
@@ -199,13 +201,16 @@ export async function generateViaCodexOAuth(
     outer: while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      if (buf.length > MAX_SSE_BUFFER) {
+      // Check the cap BEFORE concatenating — otherwise a single oversized chunk
+      // would already have blown the budget by the time we detected it.
+      const chunk = decoder.decode(value, { stream: true });
+      if (buf.length + chunk.length > MAX_SSE_BUFFER) {
         throw new NB2Error(
           'GENERATION_FAILED',
           `Codex bridge sent >${MAX_SSE_BUFFER >> 20}MB without delivering an image — aborting.`,
         );
       }
+      buf += chunk;
 
       // SSE events are separated by a blank line (\n\n). Handle CRLF too.
       buf = buf.replace(/\r\n/g, '\n');

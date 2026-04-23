@@ -1,15 +1,10 @@
 import { Command } from 'commander';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import { runGenerate } from './commands/generate.js';
 import { runEdit } from './commands/edit.js';
 import { runAuthStatus, runAuthSet, runAuthSetOpenRouter } from './commands/auth.js';
 import { runAgentInfo } from './commands/agent_info.js';
 import { runSkillInstall, runSkillStatus } from './commands/skill.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const VERSION = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8')).version;
+import { VERSION } from './version.js';
 
 const program = new Command();
 
