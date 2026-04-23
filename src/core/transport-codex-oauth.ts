@@ -16,6 +16,16 @@ const CARRIER_MODEL = process.env.NANABAN_CODEX_CARRIER ?? 'gpt-5.4';
 // base64-encoded, which is the largest payload we ever expect in a single event.
 const MAX_SSE_BUFFER = 32 * 1024 * 1024;
 
+// The ChatGPT Codex bridge is intermittently flaky — the same "stream disconnected
+// before completion" error that the Codex Rust client retries 5× (is_retryable=true
+// in codex-rs/protocol/src/error.rs) and that @romainhuet publicly acknowledged as
+// an infra issue in March 2026. Retry a few times in-process before bubbling up so
+// one transient upstream blip doesn't fail the whole generate call. Env vars are
+// read at call time (not module load) so tests can tune them.
+const UPSTREAM_TRANSIENT = /stream disconnected before completion|an error occurred while processing your request/i;
+const maxRetries = () => Number(process.env.NANABAN_CODEX_MAX_RETRIES ?? 2);
+const retryBaseMs = () => Number(process.env.NANABAN_CODEX_RETRY_MS ?? 750);
+
 // gpt-image-2 via the Codex bridge accepts these three discrete output sizes.
 // Any aspect ratio outside this set is rejected up front by aspect.ts
 // (see GPT_IMAGE_2_RATIOS in models.ts), so this map only needs to cover them.
@@ -111,6 +121,10 @@ function classifyEvent(parsed: any): EventResult {
   return { kind: 'ignore' };
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise(r => setTimeout(r, ms));
+}
+
 /**
  * Call the Codex responses backend with the user's ChatGPT Plus/Pro access token.
  *
@@ -119,8 +133,53 @@ function classifyEvent(parsed: any): EventResult {
  * - SSE events separated by `\n\n`; final image arrives in an event whose top-level
  *   `type` is `response.output_item.done` and whose `item.type` is `image_generation_call`.
  * - Billing: counts against the ChatGPT subscription — no metered cost.
+ *
+ * Wraps `attemptCodexOAuth` in a retry loop for the specific "stream disconnected"
+ * upstream-flake pattern. After retries are exhausted the error is rewritten as
+ * GENERATION_FAILED (non-transient) so dispatch does NOT silently fall back to a
+ * paid provider — the caller/agent should decide whether to switch routes.
  */
 export async function generateViaCodexOAuth(
+  auth: CodexOAuthAuth,
+  modelId: string,
+  request: ImageRequest,
+  basePath?: string,
+): Promise<ImageResult> {
+  const limit = maxRetries();
+  const baseMs = retryBaseMs();
+  let lastErr: NB2Error | null = null;
+  for (let attempt = 0; attempt <= limit; attempt++) {
+    try {
+      return await attemptCodexOAuth(auth, modelId, request, basePath);
+    } catch (err) {
+      const nerr = err instanceof NB2Error
+        ? err
+        : new NB2Error('GENERATION_FAILED', (err as Error)?.message ?? String(err));
+      const transient = UPSTREAM_TRANSIENT.test(nerr.message);
+      if (!transient) throw nerr;
+
+      lastErr = nerr;
+      if (attempt === limit) break;
+
+      // Exponential backoff with small jitter: 750ms, 1500ms by default.
+      const delay = baseMs * (1 << attempt) + Math.floor(Math.random() * 250);
+      await sleep(delay);
+    }
+  }
+
+  // All attempts hit the upstream-transient pattern. Rewrite so the agent knows
+  // (a) this isn't a nanaban bug, (b) what to do, and (c) that we did NOT silently
+  // re-route to a paid provider.
+  throw new NB2Error(
+    'GENERATION_FAILED',
+    `OpenAI's Codex bridge disconnected ${limit + 1}× in a row — known upstream flakiness (see help.openai.com). ` +
+    `Not retrying automatically on a paid provider. Options: wait ~30s and retry the same command, ` +
+    `or ask the user whether to switch with \`--via openrouter\` or \`--via gemini\` (both billable, unlike the Codex bridge). ` +
+    `Last upstream error: ${lastErr?.message ?? 'unknown'}`,
+  );
+}
+
+async function attemptCodexOAuth(
   auth: CodexOAuthAuth,
   modelId: string,
   request: ImageRequest,

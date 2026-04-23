@@ -286,6 +286,96 @@ describe('transport-codex-oauth', () => {
     );
   });
 
+  it('retries on transient "stream disconnected" upstream failures and succeeds on second attempt', async () => {
+    process.env.NANABAN_CODEX_RETRY_MS = '0';
+    const transientEvent = JSON.stringify({
+      type: 'response.failed',
+      response: { error: { message: 'stream disconnected before completion: An error occurred while processing your request. Request ID xyz' } },
+    });
+    const okEvents = [JSON.stringify({
+      type: 'response.output_item.done',
+      item: { type: 'image_generation_call', result: TINY_PNG_B64 },
+    })];
+    let calls = 0;
+    globalThis.fetch = (async () => {
+      calls += 1;
+      if (calls === 1) return new Response(sseStream([transientEvent]), { status: 200 });
+      return new Response(sseStream(okEvents), { status: 200 });
+    }) as FetchFn;
+
+    try {
+      const res = await generateViaCodexOAuth(
+        { accessToken: 't', accountId: 'a' },
+        'gpt-image-2',
+        { mode: 'generate', prompt: 'x' },
+      );
+      assert.equal(calls, 2, 'must retry exactly once on stream-disconnect');
+      assert.equal(res.buffer.toString('base64'), TINY_PNG_B64);
+    } finally {
+      delete process.env.NANABAN_CODEX_RETRY_MS;
+    }
+  });
+
+  it('surfaces an agent-friendly GENERATION_FAILED after retries are exhausted — no silent fallback', async () => {
+    process.env.NANABAN_CODEX_RETRY_MS = '0';
+    const transientEvent = JSON.stringify({
+      type: 'response.failed',
+      response: { error: { message: 'stream disconnected before completion: An error occurred while processing your request. Request ID xyz' } },
+    });
+    let calls = 0;
+    globalThis.fetch = (async () => {
+      calls += 1;
+      return new Response(sseStream([transientEvent]), { status: 200 });
+    }) as FetchFn;
+
+    try {
+      await assert.rejects(
+        () => generateViaCodexOAuth(
+          { accessToken: 't', accountId: 'a' },
+          'gpt-image-2',
+          { mode: 'generate', prompt: 'x' },
+        ),
+        (err: any) =>
+          err.code === 'GENERATION_FAILED'
+          && /disconnected/i.test(err.message)
+          && /help\.openai\.com/.test(err.message)
+          && /--via openrouter/.test(err.message)
+          && /--via gemini/.test(err.message),
+      );
+      // 1 initial + 2 retries = 3 attempts by default (MAX_RETRIES=2).
+      assert.equal(calls, 3, 'must attempt MAX_RETRIES+1 times');
+    } finally {
+      delete process.env.NANABAN_CODEX_RETRY_MS;
+    }
+  });
+
+  it('does NOT retry on content-policy failures (non-upstream-transient)', async () => {
+    process.env.NANABAN_CODEX_RETRY_MS = '0';
+    const events = [JSON.stringify({
+      type: 'response.failed',
+      response: { error: { message: 'content policy block: disallowed content' } },
+    })];
+    let calls = 0;
+    globalThis.fetch = (async () => {
+      calls += 1;
+      return new Response(sseStream(events), { status: 200 });
+    }) as FetchFn;
+
+    try {
+      await assert.rejects(
+        () => generateViaCodexOAuth(
+          { accessToken: 't', accountId: 'a' },
+          'gpt-image-2',
+          { mode: 'generate', prompt: 'x' },
+        ),
+        (err: any) => err.code === 'GENERATION_FAILED' && /content policy/.test(err.message),
+      );
+      assert.equal(calls, 1, 'content-policy blocks must NOT retry');
+    } finally {
+      delete process.env.NANABAN_CODEX_RETRY_MS;
+    }
+  });
+
   it('flushes the final event at EOF when the stream closes without a trailing blank line', async () => {
     const events = [JSON.stringify({
       type: 'response.output_item.done',
