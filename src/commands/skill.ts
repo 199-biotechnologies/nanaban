@@ -8,7 +8,7 @@ import { homedir } from 'os';
 // skill doesn't drift out of sync with real capabilities. Keep under ~1 KB.
 const SKILL_CONTENT = `---
 name: nanaban
-description: Generate or edit images from the terminal via the \\\`nanaban\\\` CLI — use whenever the user asks to create, make, generate, render, draw, or produce an image, picture, photo, illustration, graphic, icon, logo, banner, hero, thumbnail, wallpaper, product shot, concept art, mockup, or visual (including edits to existing images). Defaults to GPT Image 2 on ChatGPT Plus/Pro (free via Codex OAuth) when available, otherwise Nano Banana 2. Run \\\`nanaban agent-info\\\` for the machine-readable manifest of every model, transport, flag, and error code.
+description: Generate, edit, or modify images from the terminal via the \\\`nanaban\\\` CLI — use whenever the user asks to create, make, generate, render, draw, produce, design, edit, modify, or change an image, picture, photo, illustration, graphic, icon, logo, banner, hero, thumbnail, wallpaper, product shot, concept art, mockup, or visual. Defaults to GPT Image 2 on ChatGPT Plus/Pro (free via Codex OAuth) when available, otherwise Nano Banana 2. Run \\\`nanaban agent-info\\\` for the machine-readable manifest of every model, transport, flag, and error code (including a per-code recovery map).
 ---
 
 # nanaban

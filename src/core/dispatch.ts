@@ -1,5 +1,13 @@
-import { detectAuth, resolveRoute, makeGeminiClient, transportAvailable, type AuthState, type ResolvedRoute } from './auth.js';
-import { resolveModel, type ModelInfo, type TransportId, TRANSPORT_PREFERENCE } from './models.js';
+import {
+  detectAuth,
+  resolveRoute,
+  routesForModel,
+  needsForModel,
+  makeGeminiClient,
+  type AuthState,
+  type ResolvedRoute,
+} from './auth.js';
+import { resolveModel, type ModelInfo, type TransportId } from './models.js';
 import { generateViaGemini } from './transport-gemini.js';
 import { generateViaOpenRouter } from './transport-openrouter.js';
 import { generateViaCodexOAuth } from './transport-codex-oauth.js';
@@ -64,45 +72,13 @@ function parseTransport(via: string | undefined): TransportId | undefined {
   throw new NB2Error('CAPABILITY_UNSUPPORTED', `Unknown transport "${via}". Use one of: gemini-direct, openrouter, codex-oauth`);
 }
 
-function buildRoute(model: ModelInfo, auth: AuthState, t: TransportId): ResolvedRoute | null {
-  const modelId = model.ids[t];
-  if (!modelId) return null;
-  if (!transportAvailable(t, auth)) return null;
-  if (t === 'gemini-direct') {
-    const g = auth.gemini!;
-    if (g.type === 'oauth') return { transport: t, modelId, oauthClient: g.client };
-    return { transport: t, modelId, authKey: g.key };
-  }
-  if (t === 'codex-oauth') {
-    const c = auth.codex!;
-    return { transport: t, modelId, codexToken: c.accessToken, codexAccountId: c.accountId };
-  }
-  return { transport: t, modelId, authKey: auth.openRouter!.key };
-}
-
-function routesForModel(model: ModelInfo, auth: AuthState): ResolvedRoute[] {
-  const routes: ResolvedRoute[] = [];
-  for (const t of TRANSPORT_PREFERENCE) {
-    const r = buildRoute(model, auth, t);
-    if (r) routes.push(r);
-  }
-  return routes;
-}
-
-function needsForTransport(t: TransportId): string {
-  if (t === 'gemini-direct') return 'GEMINI_API_KEY';
-  if (t === 'openrouter') return 'OPENROUTER_API_KEY';
-  if (t === 'codex-oauth') return 'Codex OAuth (run `codex login`)';
-  return t;
-}
-
 function noRoutesError(model: ModelInfo, auth: AuthState): NB2Error {
   const keysConfigured: string[] = [];
   if (auth.gemini) keysConfigured.push('Gemini');
   if (auth.openRouter) keysConfigured.push('OpenRouter');
   if (auth.codex) keysConfigured.push('Codex OAuth');
 
-  const needs = Object.keys(model.ids).map(t => needsForTransport(t as TransportId));
+  const needs = needsForModel(model);
 
   if (keysConfigured.length === 0) {
     const onlyCodex = Object.keys(model.ids).length === 1 && !!model.ids['codex-oauth'];

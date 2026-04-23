@@ -122,56 +122,70 @@ export interface ResolvedRoute {
   codexAccountId?: string;
 }
 
-export function resolveRoute(model: ModelInfo, auth: AuthState, forced?: TransportId): ResolvedRoute {
-  const tryTransport = (t: TransportId): ResolvedRoute | null => {
-    const modelId = model.ids[t];
-    if (!modelId) return null;
-    if (!transportAvailable(t, auth)) return null;
-    if (t === 'gemini-direct') {
-      const g = auth.gemini!;
-      if (g.type === 'oauth') return { transport: t, modelId, oauthClient: g.client };
-      return { transport: t, modelId, authKey: g.key };
-    }
-    if (t === 'codex-oauth') {
-      return {
-        transport: t,
-        modelId,
-        codexToken: auth.codex!.accessToken,
-        codexAccountId: auth.codex!.accountId,
-      };
-    }
-    return { transport: t, modelId, authKey: auth.openRouter!.key };
-  };
+// Single source of truth for "assemble a concrete route for (model, auth, transport)".
+// Returns null if the model has no mapping on this transport OR the transport has
+// no configured auth. dispatch.ts (auto fallback chain) and resolveRoute (explicit
+// --via) both call through this so they can never drift out of sync.
+export function buildRoute(model: ModelInfo, auth: AuthState, t: TransportId): ResolvedRoute | null {
+  const modelId = model.ids[t];
+  if (!modelId) return null;
+  if (!transportAvailable(t, auth)) return null;
+  if (t === 'gemini-direct') {
+    const g = auth.gemini!;
+    if (g.type === 'oauth') return { transport: t, modelId, oauthClient: g.client };
+    return { transport: t, modelId, authKey: g.key };
+  }
+  if (t === 'codex-oauth') {
+    const c = auth.codex!;
+    return { transport: t, modelId, codexToken: c.accessToken, codexAccountId: c.accountId };
+  }
+  return { transport: t, modelId, authKey: auth.openRouter!.key };
+}
 
+// Enumerate every reachable route for a model, in TRANSPORT_PREFERENCE order.
+// Used by the auto-fallback chain in dispatch.ts.
+export function routesForModel(model: ModelInfo, auth: AuthState): ResolvedRoute[] {
+  const out: ResolvedRoute[] = [];
+  for (const t of TRANSPORT_PREFERENCE) {
+    const r = buildRoute(model, auth, t);
+    if (r) out.push(r);
+  }
+  return out;
+}
+
+// Human-readable description of what the user would need to reach this model.
+// Used in error messages; kept in one place so copy stays consistent.
+export function needsForTransport(t: TransportId): string {
+  if (t === 'gemini-direct') return 'GEMINI_API_KEY';
+  if (t === 'openrouter') return 'OPENROUTER_API_KEY';
+  if (t === 'codex-oauth') return 'Codex OAuth (run `codex login`)';
+  return t;
+}
+
+export function needsForModel(model: ModelInfo): string[] {
+  return Object.keys(model.ids).map(t => needsForTransport(t as TransportId));
+}
+
+export function resolveRoute(model: ModelInfo, auth: AuthState, forced?: TransportId): ResolvedRoute {
   if (forced) {
-    const r = tryTransport(forced);
+    const r = buildRoute(model, auth, forced);
     if (!r) {
       const reason = !model.ids[forced]
         ? `${model.id} cannot run on ${forced}`
-        : forced === 'codex-oauth'
-          ? 'codex-oauth requires Codex OAuth — run `codex login`'
-          : forced === 'openrouter'
-            ? 'openrouter requires OPENROUTER_API_KEY'
-            : 'gemini-direct requires GEMINI_API_KEY';
+        : `${forced} requires ${needsForTransport(forced)}`;
       throw new NB2Error('TRANSPORT_UNAVAILABLE', reason);
     }
     return r;
   }
 
   for (const t of TRANSPORT_PREFERENCE) {
-    const r = tryTransport(t);
+    const r = buildRoute(model, auth, t);
     if (r) return r;
   }
 
-  const needs = Object.keys(model.ids).map(t => {
-    if (t === 'gemini-direct') return 'GEMINI_API_KEY';
-    if (t === 'openrouter') return 'OPENROUTER_API_KEY';
-    if (t === 'codex-oauth') return 'Codex OAuth (run `codex login`)';
-    return t;
-  });
   throw new NB2Error(
     'AUTH_MISSING',
-    `Cannot reach ${model.display}: requires one of ${needs.join(' or ')}.`,
+    `Cannot reach ${model.display}: requires one of ${needsForModel(model).join(' or ')}.`,
   );
 }
 
