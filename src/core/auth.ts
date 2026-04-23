@@ -18,9 +18,17 @@ export type GeminiSource =
 
 export type AuthSource = GeminiSource;
 
+export interface CodexSource {
+  type: 'codex';
+  accessToken: string;
+  accountId: string;
+  path: string;
+}
+
 export interface AuthState {
   gemini: GeminiSource | null;
   openRouter: KeyedSource | null;
+  codex: CodexSource | null;
 }
 
 async function getOAuthClient(): Promise<OAuth2Client | null> {
@@ -44,7 +52,7 @@ async function getOAuthClient(): Promise<OAuth2Client | null> {
 }
 
 export async function detectAuth(): Promise<AuthState> {
-  const state: AuthState = { gemini: null, openRouter: null };
+  const state: AuthState = { gemini: null, openRouter: null, codex: null };
 
   const envGemini = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (envGemini) {
@@ -75,12 +83,33 @@ export async function detectAuth(): Promise<AuthState> {
     }
   }
 
+  // ~/.codex/auth.json written by `codex login`. Shape:
+  //   { auth_mode, OPENAI_API_KEY, tokens: { id_token, access_token, refresh_token, account_id }, last_refresh }
+  const codexPath = path.join(homedir(), '.codex', 'auth.json');
+  try {
+    const raw = await fs.readFile(codexPath, 'utf-8');
+    const parsed = JSON.parse(raw) as { tokens?: { access_token?: string; account_id?: string } };
+    const accessToken = parsed.tokens?.access_token;
+    const accountId = parsed.tokens?.account_id;
+    if (accessToken && accountId) {
+      state.codex = {
+        type: 'codex',
+        accessToken,
+        accountId,
+        path: '~/.codex/auth.json',
+      };
+    }
+  } catch {
+    // ignore missing or malformed codex auth
+  }
+
   return state;
 }
 
 export function transportAvailable(t: TransportId, auth: AuthState): boolean {
   if (t === 'gemini-direct') return auth.gemini !== null;
   if (t === 'openrouter') return auth.openRouter !== null;
+  if (t === 'codex-oauth') return auth.codex !== null;
   return false;
 }
 
@@ -89,6 +118,8 @@ export interface ResolvedRoute {
   modelId: string;
   authKey?: string;
   oauthClient?: OAuth2Client;
+  codexToken?: string;
+  codexAccountId?: string;
 }
 
 export function resolveRoute(model: ModelInfo, auth: AuthState, forced?: TransportId): ResolvedRoute {
@@ -101,6 +132,14 @@ export function resolveRoute(model: ModelInfo, auth: AuthState, forced?: Transpo
       if (g.type === 'oauth') return { transport: t, modelId, oauthClient: g.client };
       return { transport: t, modelId, authKey: g.key };
     }
+    if (t === 'codex-oauth') {
+      return {
+        transport: t,
+        modelId,
+        codexToken: auth.codex!.accessToken,
+        codexAccountId: auth.codex!.accountId,
+      };
+    }
     return { transport: t, modelId, authKey: auth.openRouter!.key };
   };
 
@@ -109,7 +148,11 @@ export function resolveRoute(model: ModelInfo, auth: AuthState, forced?: Transpo
     if (!r) {
       const reason = !model.ids[forced]
         ? `${model.id} cannot run on ${forced}`
-        : `${forced} requires ${forced === 'openrouter' ? 'OPENROUTER_API_KEY' : 'GEMINI_API_KEY'}`;
+        : forced === 'codex-oauth'
+          ? 'codex-oauth requires Codex OAuth — run `codex login`'
+          : forced === 'openrouter'
+            ? 'openrouter requires OPENROUTER_API_KEY'
+            : 'gemini-direct requires GEMINI_API_KEY';
       throw new NB2Error('TRANSPORT_UNAVAILABLE', reason);
     }
     return r;
@@ -120,10 +163,15 @@ export function resolveRoute(model: ModelInfo, auth: AuthState, forced?: Transpo
     if (r) return r;
   }
 
-  const needs = Object.keys(model.ids).map(t => t === 'gemini-direct' ? 'GEMINI_API_KEY' : 'OPENROUTER_API_KEY');
+  const needs = Object.keys(model.ids).map(t => {
+    if (t === 'gemini-direct') return 'GEMINI_API_KEY';
+    if (t === 'openrouter') return 'OPENROUTER_API_KEY';
+    if (t === 'codex-oauth') return 'Codex OAuth (run `codex login`)';
+    return t;
+  });
   throw new NB2Error(
     'AUTH_MISSING',
-    `Cannot reach ${model.display}: requires one of ${needs.join(' or ')}. Run \`nanaban auth set <key>\` or set the env var.`,
+    `Cannot reach ${model.display}: requires one of ${needs.join(' or ')}.`,
   );
 }
 

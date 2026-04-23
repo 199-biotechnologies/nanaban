@@ -1,7 +1,7 @@
 import type { AspectRatio, ImageSize } from './types.js';
 
 export type Family = 'gemini' | 'openai';
-export type TransportId = 'gemini-direct' | 'openrouter';
+export type TransportId = 'gemini-direct' | 'openrouter' | 'codex-oauth';
 
 export interface ModelCaps {
   aspectRatios: AspectRatio[];
@@ -96,6 +96,26 @@ export const MODELS: ModelInfo[] = [
     },
     costPerImageUsd: 0.041,
   },
+  {
+    id: 'gpt-image-2',
+    display: 'GPT Image 2',
+    family: 'openai',
+    ids: {
+      'codex-oauth': 'gpt-image-2',
+    },
+    // Canonical id is `gpt-image-2`; `gi2` is a short alias; `img2`/`images2` match OpenAI's "ChatGPT Images 2.0" branding.
+    aliases: ['gi2', 'gpt-image-2', 'img2', 'images2'],
+    caps: {
+      aspectRatios: OPENAI_RATIOS,
+      sizes: ['1K'],
+      // egaki-verified: the bridge accepts multiple reference images. Cap at 16 to match gpt5.
+      maxRefImages: 16,
+      edit: true,
+      negativePrompt: false,
+    },
+    // Billed against the user's ChatGPT Plus/Pro subscription, not per-image.
+    costPerImageUsd: 0,
+  },
 ];
 
 const MODEL_LOOKUP = new Map<string, ModelInfo>();
@@ -112,4 +132,4 @@ export function listModelNames(): string[] {
   return MODELS.map(m => m.id);
 }
 
-export const TRANSPORT_PREFERENCE: TransportId[] = ['openrouter', 'gemini-direct'];
+export const TRANSPORT_PREFERENCE: TransportId[] = ['codex-oauth', 'openrouter', 'gemini-direct'];

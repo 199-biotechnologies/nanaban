@@ -5,7 +5,7 @@ import { createOutput } from '../lib/output.js';
 import pc from 'picocolors';
 
 interface AuthMethodView {
-  type: 'gemini' | 'openrouter';
+  type: 'gemini' | 'openrouter' | 'codex-oauth';
   source: string;
   detail: string;
   valid: boolean;
@@ -27,14 +27,23 @@ function viewAuth(state: AuthState): AuthMethodView[] {
       : `${o.path} (${o.key.slice(0, 12)}...)`;
     out.push({ type: 'openrouter', source: o.type, detail, valid: true });
   }
+  if (state.codex) {
+    out.push({
+      type: 'codex-oauth',
+      source: 'file',
+      detail: `${state.codex.path} (account ${state.codex.accountId.slice(0, 8)}...)`,
+      valid: true,
+    });
+  }
   return out;
 }
 
 function reachableModels(state: AuthState): { model: ModelInfo; transports: string[] }[] {
   return MODELS.map(model => {
     const transports: string[] = [];
-    if (state.gemini && model.ids['gemini-direct']) transports.push('gemini-direct');
+    if (state.codex && model.ids['codex-oauth']) transports.push('codex-oauth');
     if (state.openRouter && model.ids['openrouter']) transports.push('openrouter');
+    if (state.gemini && model.ids['gemini-direct']) transports.push('gemini-direct');
     return { model, transports };
   }).filter(r => r.transports.length > 0);
 }
@@ -57,7 +66,7 @@ export async function runAuthStatus(json: boolean): Promise<void> {
 
   const out = createOutput(false, false);
   if (methods.length === 0) {
-    out.authStatus('none', 'No authentication configured. Run `nanaban auth set <gemini-key>` or `nanaban auth set-openrouter <key>`, or set GEMINI_API_KEY / OPENROUTER_API_KEY.', false);
+    out.authStatus('none', 'No authentication configured. Options: run `codex login` (free via ChatGPT Plus/Pro → gpt-image-2), `nanaban auth set-openrouter <key>` (all models via OpenRouter), or set GEMINI_API_KEY / OPENROUTER_API_KEY.', false);
     process.exit(1);
   }
 

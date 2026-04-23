@@ -19,6 +19,11 @@ export function runAgentInfo(): void {
     description: 'Image generation from the terminal — Nano Banana (Gemini) and GPT Image via one CLI',
     transports: [
       {
+        id: 'codex-oauth',
+        description: "Direct ChatGPT Plus/Pro backend (Codex) using user's access token ($0 billed to sub)",
+        auth_file: '~/.codex/auth.json',
+      },
+      {
         id: 'gemini-direct',
         description: 'Direct Gemini API via @google/genai SDK',
         env_keys: ['GEMINI_API_KEY', 'GOOGLE_API_KEY'],
@@ -49,9 +54,9 @@ export function runAgentInfo(): void {
       cost_per_image_usd: m.costPerImageUsd,
     })),
     auth_resolution: {
-      policy: 'Pick the first available transport in preference order (openrouter, gemini-direct). On a transient failure (RATE_LIMITED, NETWORK_ERROR, AUTH_INVALID, AUTH_EXPIRED) automatically retry on the next available transport. --via <transport> pins a single route and disables fallback. Any single key is enough — you do not need both.',
-      preference_order: ['openrouter', 'gemini-direct'],
-      preference_rationale: 'OpenRouter reaches every model (Gemini + OpenAI) with one key, has its own rate bucket, and bills per-use — it is the most reliable default. gemini-direct is tried second for users with a free-tier Gemini key who have not set up OpenRouter.',
+      policy: 'Pick the first available transport in preference order (codex-oauth, openrouter, gemini-direct). On a transient failure (RATE_LIMITED, NETWORK_ERROR, AUTH_INVALID, AUTH_EXPIRED) automatically retry on the next available transport. --via <transport> pins a single route and disables fallback. Any single key or auth file is enough — you do not need all of them.',
+      preference_order: ['codex-oauth', 'openrouter', 'gemini-direct'],
+      preference_rationale: "codex-oauth is preferred first because it is $0 for ChatGPT Plus subscribers and provides gpt-image-2. OpenRouter is tried second as it reaches every model with one key. gemini-direct is the third fallback for direct Google API users.",
       override_flag: '--via <transport>',
       fallback_behavior: {
         enabled: true,
@@ -60,7 +65,7 @@ export function runAgentInfo(): void {
         skip_on_codes: ['GENERATION_FAILED', 'CAPABILITY_UNSUPPORTED', 'MODEL_NOT_FOUND'],
         surfaces_as: 'success envelope gains a `fallbacks` array listing each failed transport hop (transport, code, message); error envelope message includes the full chain (e.g. "RATE_LIMITED (tried openrouter:RATE_LIMITED → gemini-direct:RATE_LIMITED)")',
       },
-      recommendation: 'Set OPENROUTER_API_KEY for best reliability; optionally also set GEMINI_API_KEY so nanaban can fall back automatically when one provider is rate-limited or down.',
+      recommendation: 'If you have ChatGPT Plus/Pro, `codex login` unlocks gpt-image-2 at $0 per image. Add OPENROUTER_API_KEY for reliability across every model (Nano Banana, GPT-5 Image) and automatic fallback.',
     },
     commands: [
       {
@@ -73,8 +78,8 @@ export function runAgentInfo(): void {
           { name: '--ar', type: 'string', default: '1:1', description: 'Aspect ratio (see model capabilities)' },
           { name: '--size', type: 'string', default: '1k', description: 'Resolution: 0.5k, 1k, 2k, 4k (model-dependent)' },
           { name: '--pro', type: 'boolean', default: false, description: 'Alias for --model nb2-pro (Nano Banana Pro)' },
-          { name: '--model', type: 'string', default: 'nb2', description: 'Model id: nb2, nb2-pro, gpt5, gpt5-mini' },
-          { name: '--via', type: 'string', description: 'Force transport: gemini-direct, openrouter' },
+          { name: '--model', type: 'string', default: 'auto (gpt-image-2 when Codex OAuth is detected, else nb2)', description: 'Model id: gpt-image-2 | nb2 | nb2-pro | gpt5 | gpt5-mini (aliases: gi2, pro, flash, gpt, mini)' },
+          { name: '--via', type: 'string', description: 'Force transport: codex-oauth | gemini-direct | openrouter (aliases: codex, plus, gemini, google, or)' },
           { name: '--neg', type: 'string', description: 'Negative prompt (Gemini only)' },
           { name: '--ref', short: '-r', type: 'string[]', description: 'Reference image path(s)' },
           { name: '--open', type: 'boolean', default: false, description: 'Open in default viewer after generation' },
@@ -128,6 +133,10 @@ export function runAgentInfo(): void {
       { name: 'OPENROUTER_API_KEY', description: 'OpenRouter key — reaches both Gemini and OpenAI image models' },
       { name: 'NANABAN_OAUTH_CLIENT_ID', description: 'OAuth client ID for Gemini CLI auth' },
       { name: 'NANABAN_OAUTH_CLIENT_SECRET', description: 'OAuth client secret for Gemini CLI auth' },
+    ],
+    auth_files: [
+      { path: '~/.codex/auth.json', description: 'ChatGPT Plus/Pro OAuth bundle from `codex login` — enables codex-oauth transport (gpt-image-2, billed against ChatGPT sub)' },
+      { path: '~/.gemini/oauth_creds.json', description: 'Gemini CLI OAuth credentials (enables gemini-direct when NANABAN_OAUTH_CLIENT_ID/SECRET are set)' },
     ],
     exit_codes: [
       { code: 0, meaning: 'success' },

@@ -57,12 +57,12 @@ describe('agent-info', () => {
     }
   });
 
-  it('declares all four models with capabilities', () => {
+  it('declares all five models with capabilities', () => {
     const { stdout } = run(['agent-info']);
     const manifest = JSON.parse(stdout);
     assert.ok(Array.isArray(manifest.models));
     const ids = manifest.models.map((m: any) => m.id);
-    for (const expected of ['nb2', 'nb2-pro', 'gpt5', 'gpt5-mini']) {
+    for (const expected of ['nb2', 'nb2-pro', 'gpt5', 'gpt5-mini', 'gpt-image-2']) {
       assert.ok(ids.includes(expected), `missing model: ${expected}`);
     }
     const nb2 = manifest.models.find((m: any) => m.id === 'nb2');
@@ -72,20 +72,20 @@ describe('agent-info', () => {
     assert.ok(!pro.capabilities.aspect_ratios.includes('1:8'), 'pro should not have extended ratios');
   });
 
-  it('declares both transports', () => {
+  it('declares all three transports', () => {
     const { stdout } = run(['agent-info']);
     const manifest = JSON.parse(stdout);
     const ids = manifest.transports.map((t: any) => t.id);
-    assert.deepEqual(ids.sort(), ['gemini-direct', 'openrouter']);
+    assert.deepEqual(ids.sort(), ['codex-oauth', 'gemini-direct', 'openrouter']);
   });
 
-  it('prefers openrouter over gemini-direct', () => {
+  it('prefers codex-oauth over others', () => {
     const { stdout } = run(['agent-info']);
     const manifest = JSON.parse(stdout);
     assert.deepEqual(
       manifest.auth_resolution.preference_order,
-      ['openrouter', 'gemini-direct'],
-      'OpenRouter must be the default — it reaches every model and has a separate rate bucket',
+      ['codex-oauth', 'openrouter', 'gemini-direct'],
+      'Codex must be preferred first — it is $0 for Plus users',
     );
   });
 

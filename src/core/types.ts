@@ -24,7 +24,7 @@ export interface ImageResult {
   width: number;
   height: number;
   modelId: string;
-  transport: 'gemini-direct' | 'openrouter';
+  transport: 'gemini-direct' | 'openrouter' | 'codex-oauth';
   durationMs: number;
   costUsd?: number;
 }

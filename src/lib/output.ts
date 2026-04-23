@@ -128,11 +128,11 @@ export function createOutput(json: boolean, quiet: boolean): Output {
 function hintFor(code: string): string | null {
   switch (code) {
     case 'AUTH_MISSING':
-      return 'run `nanaban auth set-openrouter <key>` — one OpenRouter key reaches every model (Nano Banana + GPT-5 Image).';
+      return 'pick one: `codex login` (free gpt-image-2 via ChatGPT Plus/Pro) | `nanaban auth set-openrouter <key>` (one key reaches every OR-routed model) | set GEMINI_API_KEY / OPENROUTER_API_KEY.';
     case 'AUTH_INVALID':
-      return 'key was rejected. Get a fresh one: OpenRouter → https://openrouter.ai/keys, Gemini → https://aistudio.google.com/apikey';
+      return 'key or OAuth token was rejected. Refresh: Codex → `codex login`; OpenRouter → https://openrouter.ai/keys; Gemini → https://aistudio.google.com/apikey';
     case 'AUTH_EXPIRED':
-      return 'OAuth token expired. Re-auth with `gemini auth`, or set OPENROUTER_API_KEY to bypass OAuth entirely.';
+      return 'OAuth token expired. Re-auth with `codex login` (for codex-oauth) or `gemini auth` (for gemini-direct), or set OPENROUTER_API_KEY to bypass OAuth entirely.';
     case 'RATE_LIMITED':
       return 'add a second provider so nanaban can fall back automatically: `nanaban auth set-openrouter <key>` or set OPENROUTER_API_KEY.';
     case 'NETWORK_ERROR':

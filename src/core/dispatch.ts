@@ -2,6 +2,7 @@ import { detectAuth, resolveRoute, makeGeminiClient, transportAvailable, type Au
 import { resolveModel, type ModelInfo, type TransportId, TRANSPORT_PREFERENCE } from './models.js';
 import { generateViaGemini } from './transport-gemini.js';
 import { generateViaOpenRouter } from './transport-openrouter.js';
+import { generateViaCodexOAuth } from './transport-codex-oauth.js';
 import { parseAspectRatio, parseImageSize, checkCapabilities } from './aspect.js';
 import { NB2Error, normalizeError, isTransient } from '../lib/errors.js';
 import type { ImageRequest, ImageResult, GenerationMode } from './types.js';
@@ -26,8 +27,18 @@ export interface DispatchResult extends ImageResult {
   fallbacks?: { transport: TransportId; code: string; message: string }[];
 }
 
-function pickModel(opts: DispatchOptions): ModelInfo {
-  const name = opts.modelName ?? (opts.pro ? 'nb2-pro' : 'nb2');
+function pickModel(opts: DispatchOptions, auth: AuthState): ModelInfo {
+  let name = opts.modelName;
+  if (!name) {
+    if (opts.pro) {
+      name = 'nb2-pro';
+    } else if (auth.codex) {
+      name = 'gpt-image-2';
+    } else {
+      name = 'nb2';
+    }
+  }
+
   const model = resolveModel(name);
   if (!model) {
     throw new NB2Error('MODEL_NOT_FOUND', `Unknown model "${name}". Run \`nanaban agent-info\` to list available models.`);
@@ -37,10 +48,11 @@ function pickModel(opts: DispatchOptions): ModelInfo {
 
 function parseTransport(via: string | undefined): TransportId | undefined {
   if (!via) return undefined;
-  if (via === 'gemini-direct' || via === 'openrouter') return via;
+  if (via === 'gemini-direct' || via === 'openrouter' || via === 'codex-oauth') return via;
   if (via === 'gemini' || via === 'google') return 'gemini-direct';
   if (via === 'or') return 'openrouter';
-  throw new NB2Error('CAPABILITY_UNSUPPORTED', `Unknown transport "${via}". Use one of: gemini-direct, openrouter`);
+  if (via === 'codex' || via === 'plus') return 'codex-oauth';
+  throw new NB2Error('CAPABILITY_UNSUPPORTED', `Unknown transport "${via}". Use one of: gemini-direct, openrouter, codex-oauth`);
 }
 
 function buildRoute(model: ModelInfo, auth: AuthState, t: TransportId): ResolvedRoute | null {
@@ -51,6 +63,10 @@ function buildRoute(model: ModelInfo, auth: AuthState, t: TransportId): Resolved
     const g = auth.gemini!;
     if (g.type === 'oauth') return { transport: t, modelId, oauthClient: g.client };
     return { transport: t, modelId, authKey: g.key };
+  }
+  if (t === 'codex-oauth') {
+    const c = auth.codex!;
+    return { transport: t, modelId, codexToken: c.accessToken, codexAccountId: c.accountId };
   }
   return { transport: t, modelId, authKey: auth.openRouter!.key };
 }
@@ -64,29 +80,36 @@ function routesForModel(model: ModelInfo, auth: AuthState): ResolvedRoute[] {
   return routes;
 }
 
+function needsForTransport(t: TransportId): string {
+  if (t === 'gemini-direct') return 'GEMINI_API_KEY';
+  if (t === 'openrouter') return 'OPENROUTER_API_KEY';
+  if (t === 'codex-oauth') return 'Codex OAuth (run `codex login`)';
+  return t;
+}
+
 function noRoutesError(model: ModelInfo, auth: AuthState): NB2Error {
   const keysConfigured: string[] = [];
   if (auth.gemini) keysConfigured.push('Gemini');
   if (auth.openRouter) keysConfigured.push('OpenRouter');
+  if (auth.codex) keysConfigured.push('Codex OAuth');
 
-  const needs = Object.keys(model.ids).map(t =>
-    t === 'gemini-direct' ? 'GEMINI_API_KEY' : 'OPENROUTER_API_KEY',
-  );
+  const needs = Object.keys(model.ids).map(t => needsForTransport(t as TransportId));
 
   if (keysConfigured.length === 0) {
+    const hint = model.ids['codex-oauth']
+      ? 'Quick fix: run `codex login` (free via ChatGPT Plus/Pro), or set OPENROUTER_API_KEY.'
+      : 'Quick fix: run `nanaban auth set-openrouter <key>` (one key reaches every OR-routed model), or set OPENROUTER_API_KEY / GEMINI_API_KEY.';
     return new NB2Error(
       'AUTH_MISSING',
-      `No authentication configured. ${model.display} needs one of ${needs.join(' or ')}. ` +
-        `Quick fix: run \`nanaban auth set-openrouter <key>\` (one key reaches every model), ` +
-        `or set OPENROUTER_API_KEY / GEMINI_API_KEY in the environment.`,
+      `No authentication configured. ${model.display} needs one of ${needs.join(' or ')}. ${hint}`,
     );
   }
 
-  // Key exists but not for this model (e.g. only Gemini key for GPT-5).
+  // Key exists but not for this model (e.g. only Gemini key for GPT-5, or no Codex auth for gpt-image-2).
   return new NB2Error(
     'TRANSPORT_UNAVAILABLE',
     `${model.display} cannot be reached with currently-configured auth (${keysConfigured.join(', ')}). ` +
-      `This model needs ${needs.join(' or ')}. Run \`nanaban auth set-openrouter <key>\` to enable it.`,
+      `This model needs ${needs.join(' or ')}.`,
   );
 }
 
@@ -100,11 +123,20 @@ async function runRoute(
     const client = makeGeminiClient(auth);
     return generateViaGemini(client, route.modelId, request, basePath);
   }
+  if (route.transport === 'codex-oauth') {
+    return generateViaCodexOAuth(
+      { accessToken: route.codexToken!, accountId: route.codexAccountId! },
+      route.modelId,
+      request,
+      basePath,
+    );
+  }
   return generateViaOpenRouter(route.authKey!, route.modelId, request, basePath);
 }
 
 export async function dispatch(opts: DispatchOptions): Promise<DispatchResult> {
-  const model = pickModel(opts);
+  const auth = await detectAuth();
+  const model = pickModel(opts, auth);
   const aspectRatio = parseAspectRatio(opts.aspect || '1:1');
   const imageSize = parseImageSize(opts.size || '1K');
   checkCapabilities(model, aspectRatio, imageSize);
@@ -119,7 +151,6 @@ export async function dispatch(opts: DispatchOptions): Promise<DispatchResult> {
     );
   }
 
-  const auth = await detectAuth();
   const forced = parseTransport(opts.via);
 
   const request: ImageRequest = {
@@ -181,6 +212,9 @@ function describeAuth(transport: TransportId, auth: AuthState): string {
   if (transport === 'openrouter' && auth.openRouter) {
     const a = auth.openRouter;
     return `openrouter via ${a.type === 'env' ? a.name : a.path}`;
+  }
+  if (transport === 'codex-oauth' && auth.codex) {
+    return `codex-oauth via ${auth.codex.path}`;
   }
   return transport;
 }
